@@ -1,0 +1,15 @@
+{
+    "id": "{2F9E1C8A-4D3B-4A7E-B6C9-5F2A8D1E3C7B}",
+    "name": "SmartPartyGateway",
+    "type": 3,
+    "vendor": "Florian Graßinger",
+    "aliases": [
+        "Smart Party Gateway"
+    ],
+    "parentRequirements": [],
+    "childRequirements": [],
+    "implemented": [],
+    "prefix": "SPG",
+    "url": "https://github.com/pinkerunicorn/SymconSmartParty",
+    "author": "Florian Graßinger"
+}

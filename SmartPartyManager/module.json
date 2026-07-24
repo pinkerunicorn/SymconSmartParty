@@ -1,0 +1,15 @@
+{
+    "id": "{7B3D9F2E-1C8A-4E6D-A3B7-8C5F2D9A4E1C}",
+    "name": "SmartPartyManager",
+    "type": 3,
+    "vendor": "Florian Graßinger",
+    "aliases": [
+        "Smart Party Manager"
+    ],
+    "parentRequirements": [],
+    "childRequirements": [],
+    "implemented": [],
+    "prefix": "SPM",
+    "url": "https://github.com/pinkerunicorn/SymconSmartParty",
+    "author": "Florian Graßinger"
+}
