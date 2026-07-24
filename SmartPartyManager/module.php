@@ -676,7 +676,7 @@ class SmartPartyManager extends IPSModuleStrict
         $pending   = count(array_filter($guests, fn($g) => $g['status'] === 'pending'));
 
         $this->SetValue('EventName', $event['name'] ?? '');
-        $this->SetValue('EventDate', ($event['date'] ?? '') . ($event['time'] ? ' · ' . $event['time'] . ' Uhr' : ''));
+        $this->SetValue('EventDate', ($event['date'] ?? '') . (!empty($event['time']) ? ' · ' . $event['time'] . ' Uhr' : ''));
         $this->SetValue('EventLocation', $event['location'] ?? '');
         $this->SetValue('TotalGuests', $total);
         $this->SetValue('ConfirmedGuests', $confirmed);
@@ -692,7 +692,7 @@ class SmartPartyManager extends IPSModuleStrict
         }
 
         $eventTitle = htmlspecialchars($event['name'] ?? '');
-        $eventDate  = htmlspecialchars(($event['date'] ?? '') . ($event['time'] ? ' · ' . $event['time'] . ' Uhr' : ''));
+        $eventDate  = htmlspecialchars(($event['date'] ?? '') . (!empty($event['time']) ? ' · ' . $event['time'] . ' Uhr' : ''));
         $eventLoc   = htmlspecialchars($event['location'] ?? '');
 
         $rows = '';
