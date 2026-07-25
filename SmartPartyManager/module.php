@@ -586,9 +586,13 @@ class SmartPartyManager extends IPSModuleStrict
         $wahaUrl    = rtrim($this->ReadPropertyString('WAHABaseURL'), '/');
         $wahaKey    = $this->ReadPropertyString('WAHAApiKey');
         $session    = $this->ReadPropertyString('WAHASession');
+        $phone = $guest['phone'] ?? '';
+        if (empty($phone)) {
+            return false;
+        }
         // Nummer bereinigen: nur Ziffern, kein führendes +
         $phone = preg_replace('/[^0-9]/', '', $phone);
-        // Führende 0 durch Ländervorwahl ersetzen (falls nötig)
+        // Führende 00 durch direkte Ländervorwahl ersetzen
         if (str_starts_with($phone, '00')) {
             $phone = substr($phone, 2);
         }
