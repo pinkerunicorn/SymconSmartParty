@@ -586,10 +586,31 @@ class SmartPartyManager extends IPSModuleStrict
         $wahaUrl    = rtrim($this->ReadPropertyString('WAHABaseURL'), '/');
         $wahaKey    = $this->ReadPropertyString('WAHAApiKey');
         $session    = $this->ReadPropertyString('WAHASession');
-        $phone      = $guest['phone'];
+        // Nummer bereinigen: nur Ziffern, kein führendes +
+        $phone = preg_replace('/[^0-9]/', '', $phone);
+        // Führende 0 durch Ländervorwahl ersetzen (falls nötig)
+        if (str_starts_with($phone, '00')) {
+            $phone = substr($phone, 2);
+        }
 
-        if (empty($phone)) {
+        $chatId = $phone . '@c.us';
+
+        // Prüfen ob Nummer auf WhatsApp existiert
+        $checkUrl = $wahaUrl . '/api/' . $session . '/contacts/check-exists?phone=' . $phone;
+        $chk = curl_init($checkUrl);
+        curl_setopt($chk, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($chk, CURLOPT_HTTPHEADER, !empty($wahaKey) ? ['X-Api-Key: ' . $wahaKey] : []);
+        $chkResult = json_decode(curl_exec($chk), true);
+        curl_close($chk);
+
+        if (!($chkResult['numberExists'] ?? false)) {
+            $this->SendDebug('SendWhatsApp', 'Nummer nicht auf WhatsApp: ' . $phone, 0);
             return false;
+        }
+
+        // Falls WAHA eine LID-chatId zurückgibt, diese verwenden
+        if (!empty($chkResult['chatId'])) {
+            $chatId = $chkResult['chatId'];
         }
 
         $text = $this->FillTemplate($this->ReadPropertyString('WhatsAppTemplate'), $guest, $event);
@@ -600,7 +621,7 @@ class SmartPartyManager extends IPSModuleStrict
 
         $payload = json_encode([
             'session' => $session,
-            'chatId'  => $phone . '@c.us',
+            'chatId'  => $chatId,
             'text'    => $text,
         ]);
 
