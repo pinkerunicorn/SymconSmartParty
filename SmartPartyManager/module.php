@@ -564,7 +564,7 @@ class SmartPartyManager extends IPSModuleStrict
         }
 
         try {
-            SMTP_SendMail($smtpId, $guest['email'], $subject, $body);
+            SMTP_SendMailEx($smtpId, $guest['email'], $subject, $body);
             $this->SendDebug('SendEmail', 'Sent to: ' . $guest['email'], 0);
             return true;
         } catch (Exception $e) {
