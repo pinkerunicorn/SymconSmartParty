@@ -755,12 +755,4 @@ HTML;
         return json_decode($result, true);
     }
 
-    public function GetCompatibleParents(): string
-    {
-        $compatible = [];
-        foreach (IPS_GetInstanceListByModuleID('{2F9E1C8A-4D3B-4A7E-B6C9-5F2A8D1E3C7B}') as $instanceID) {
-            $compatible[] = $instanceID;
-        }
-        return json_encode($compatible);
-    }
 }
