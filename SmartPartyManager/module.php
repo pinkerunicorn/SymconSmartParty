@@ -12,7 +12,8 @@ class SmartPartyManager extends IPSModuleStrict
     {
         parent::Create();
 
-        // SMTP Verknüpfung
+        // Gateway & SMTP Verknüpfung
+        $this->RegisterPropertyInteger('GatewayInstance', 0);
         $this->RegisterPropertyInteger('SMTPInstance', 0);
 
         // WAHA
@@ -69,9 +70,13 @@ class SmartPartyManager extends IPSModuleStrict
     {
         parent::ApplyChanges();
 
-        // Reference auf SMTP registrieren
+        // Referenzen registrieren
         foreach ($this->GetReferenceList() as $refID) {
             $this->UnregisterReference($refID);
+        }
+        $gatewayId = $this->ReadPropertyInteger('GatewayInstance');
+        if ($gatewayId > 1 && @IPS_ObjectExists($gatewayId)) {
+            $this->RegisterReference($gatewayId);
         }
         $smtpId = $this->ReadPropertyInteger('SMTPInstance');
         if ($smtpId > 1 && @IPS_ObjectExists($smtpId)) {
@@ -102,10 +107,16 @@ class SmartPartyManager extends IPSModuleStrict
 
         return json_encode([
             'elements' => [
-                // SMTP
+                // Gateway + SMTP
                 [
                     'type'    => 'Label',
                     'caption' => '── Verknüpfungen ──────────────────────────────────',
+                ],
+                [
+                    'type'    => 'SelectInstance',
+                    'name'    => 'GatewayInstance',
+                    'caption' => 'SmartPartyGateway Instanz',
+                    'filter'  => '{2F9E1C8A-4D3B-4A7E-B6C9-5F2A8D1E3C7B}',
                 ],
                 [
                     'type'    => 'SelectInstance',
@@ -293,9 +304,9 @@ class SmartPartyManager extends IPSModuleStrict
 
     public function LoadGuests(): void
     {
-        $gatewayId = $this->GetGatewayID();
+        $gatewayId = $this->ReadPropertyInteger('GatewayInstance');
         if ($gatewayId <= 0 || !IPS_InstanceExists($gatewayId)) {
-            echo 'Fehler: Kein übergeordnetes SmartPartyGateway (Splitter) verknüpft.';
+            echo 'Fehler: SmartPartyGateway Instanz nicht konfiguriert.';
             return;
         }
 
@@ -440,7 +451,7 @@ class SmartPartyManager extends IPSModuleStrict
             return;
         }
 
-        $gatewayId = $this->GetGatewayID();
+        $gatewayId = $this->ReadPropertyInteger('GatewayInstance');
         if ($gatewayId <= 0 || !IPS_InstanceExists($gatewayId)) {
             return;
         }
@@ -743,12 +754,4 @@ class SmartPartyManager extends IPSModuleStrict
 HTML;
     }
 
-    private function GetGatewayID(): int
-    {
-        if (!$this->HasActiveParent()) {
-            return 0;
-        }
-        $instance = IPS_GetInstance($this->InstanceID);
-        return (int) ($instance['ConnectionID'] ?? 0);
-    }
 }
