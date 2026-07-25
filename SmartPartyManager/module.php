@@ -12,8 +12,10 @@ class SmartPartyManager extends IPSModuleStrict
     {
         parent::Create();
 
-        // Gateway & SMTP Verknüpfung
-        $this->RegisterPropertyInteger('GatewayInstance', 0);
+        // Splitter (SmartPartyGateway) automatisch verbinden
+        $this->ConnectParent('{2F9E1C8A-4D3B-4A7E-B6C9-5F2A8D1E3C7B}');
+
+        // SMTP Verknüpfung
         $this->RegisterPropertyInteger('SMTPInstance', 0);
 
         // WAHA
@@ -74,10 +76,6 @@ class SmartPartyManager extends IPSModuleStrict
         foreach ($this->GetReferenceList() as $refID) {
             $this->UnregisterReference($refID);
         }
-        $gatewayId = $this->ReadPropertyInteger('GatewayInstance');
-        if ($gatewayId > 1 && @IPS_ObjectExists($gatewayId)) {
-            $this->RegisterReference($gatewayId);
-        }
         $smtpId = $this->ReadPropertyInteger('SMTPInstance');
         if ($smtpId > 1 && @IPS_ObjectExists($smtpId)) {
             $this->RegisterReference($smtpId);
@@ -107,16 +105,10 @@ class SmartPartyManager extends IPSModuleStrict
 
         return json_encode([
             'elements' => [
-                // Gateway + SMTP
+                // SMTP
                 [
                     'type'    => 'Label',
                     'caption' => '── Verknüpfungen ──────────────────────────────────',
-                ],
-                [
-                    'type'    => 'SelectInstance',
-                    'name'    => 'GatewayInstance',
-                    'caption' => 'SmartPartyGateway Instanz',
-                    'filter'  => '{2F9E1C8A-4D3B-4A7E-B6C9-5F2A8D1E3C7B}',
                 ],
                 [
                     'type'    => 'SelectInstance',
@@ -304,13 +296,12 @@ class SmartPartyManager extends IPSModuleStrict
 
     public function LoadGuests(): void
     {
-        $gatewayId = $this->ReadPropertyInteger('GatewayInstance');
-        if ($gatewayId <= 0 || !IPS_InstanceExists($gatewayId)) {
-            echo 'Fehler: SmartPartyGateway Instanz nicht konfiguriert.';
+        if (!$this->HasActiveParent()) {
+            echo 'Fehler: Kein SmartPartyGateway (Splitter) verbunden.';
             return;
         }
 
-        $guests = SPG_FetchGuests($gatewayId);
+        $guests = $this->RequestFromGateway('FetchGuests');
 
         if (empty($guests)) {
             echo 'Keine Gäste gefunden. Prüfe die Google Contacts Labels im SmartPartyGateway.';
@@ -451,12 +442,11 @@ class SmartPartyManager extends IPSModuleStrict
             return;
         }
 
-        $gatewayId = $this->ReadPropertyInteger('GatewayInstance');
-        if ($gatewayId <= 0 || !IPS_InstanceExists($gatewayId)) {
+        if (!$this->HasActiveParent()) {
             return;
         }
 
-        $responses = SPG_GetRSVPResponses($gatewayId, $formId);
+        $responses = $this->RequestFromGateway('GetRSVPResponses', ['formId' => $formId]);
         if (empty($responses)) {
             $this->SendDebug('CheckRSVP', 'No responses yet', 0);
             return;
@@ -754,4 +744,17 @@ class SmartPartyManager extends IPSModuleStrict
 HTML;
     }
 
+    private function RequestFromGateway(string $function, array $parameters = []): mixed
+    {
+        $data = json_encode([
+            'DataID' => '{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}',
+            'Buffer' => json_encode([
+                'Function'   => $function,
+                'Parameters' => $parameters,
+            ]),
+        ]);
+
+        $result = $this->SendDataToParent($data);
+        return json_decode($result, true);
+    }
 }

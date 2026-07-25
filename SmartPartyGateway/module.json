@@ -1,14 +1,18 @@
 {
     "id": "{2F9E1C8A-4D3B-4A7E-B6C9-5F2A8D1E3C7B}",
     "name": "SmartPartyGateway",
-    "type": 3,
+    "type": 2,
     "vendor": "Florian Graßinger",
     "aliases": [
         "Smart Party Gateway"
     ],
     "parentRequirements": [],
-    "childRequirements": [],
-    "implemented": [],
+    "childRequirements": [
+        "{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}"
+    ],
+    "implemented": [
+        "{B2C3D4E5-F6A7-8901-BCDE-F12345678901}"
+    ],
     "prefix": "SPG",
     "url": "https://github.com/pinkerunicorn/SymconSmartParty",
     "author": "Florian Graßinger"
