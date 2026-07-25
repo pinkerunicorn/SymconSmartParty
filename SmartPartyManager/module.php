@@ -49,15 +49,15 @@ class SmartPartyManager extends IPSModuleStrict
         $this->RegisterAttributeString('EventData', '{}');
 
         // Symcon-Variablen
-        $this->RegisterVariableBoolean('EventActive', '🎉 Event aktiv', '', 0);
-        $this->RegisterVariableString('EventName', '📋 Event Name', '', 1);
-        $this->RegisterVariableString('EventDate', '📅 Datum & Uhrzeit', '', 2);
-        $this->RegisterVariableString('EventLocation', '📍 Ort', '', 3);
-        $this->RegisterVariableInteger('TotalGuests', '👥 Gäste gesamt', '', 4);
-        $this->RegisterVariableInteger('ConfirmedGuests', '✅ Zusagen', '', 5);
-        $this->RegisterVariableInteger('DeclinedGuests', '❌ Absagen', '', 6);
-        $this->RegisterVariableInteger('PendingGuests', '⏳ Ausstehend', '', 7);
-        $this->RegisterVariableString('GuestListHTML', '📋 Gästeliste', '', 8);
+        $this->RegisterVariableBoolean('EventActive', 'Event aktiv', '', 0);
+        $this->RegisterVariableString('EventName', 'Event Name', '', 1);
+        $this->RegisterVariableString('EventDate', 'Datum & Uhrzeit', '', 2);
+        $this->RegisterVariableString('EventLocation', 'Ort', '', 3);
+        $this->RegisterVariableInteger('TotalGuests', 'Gaeste gesamt', '', 4);
+        $this->RegisterVariableInteger('ConfirmedGuests', 'Zusagen', '', 5);
+        $this->RegisterVariableInteger('DeclinedGuests', 'Absagen', '', 6);
+        $this->RegisterVariableInteger('PendingGuests', 'Ausstehend', '', 7);
+        $this->RegisterVariableString('GuestListHTML', 'Gaesteliste', '', 8);
         IPS_SetVariableCustomPresentation($this->GetIDForIdent('GuestListHTML'), [
             'type' => 'HTML',
         ]);

@@ -41,7 +41,7 @@ class SmartPartyGateway extends IPSModuleStrict
         $this->RegisterAttributeInteger('GoogleTokenExpiry', 0);
 
         // Status variable
-        $this->RegisterVariableString('AuthStatus', '🔑 Google Auth Status', '', 0);
+        $this->RegisterVariableString('AuthStatus', 'Google Auth Status', '', 0);
     }
 
     public function ApplyChanges(): void
@@ -456,7 +456,7 @@ class SmartPartyGateway extends IPSModuleStrict
 
         if ($httpCode !== 200 || $response === false) {
             $this->SendDebug('GetAccessToken', 'Refresh failed HTTP ' . $httpCode, 0);
-            $this->SetValue('AuthStatus', '❌ Token-Refresh fehlgeschlagen — Bitte neu autorisieren');
+            $this->SetValue('AuthStatus', 'Token-Refresh fehlgeschlagen - Bitte neu autorisieren');
             return '';
         }
 
@@ -509,9 +509,9 @@ class SmartPartyGateway extends IPSModuleStrict
     {
         $refreshToken = $this->ReadAttributeString('GoogleRefreshToken');
         if (!empty($refreshToken)) {
-            $this->SetValue('AuthStatus', '✅ Verbunden mit Google');
+            $this->SetValue('AuthStatus', 'Verbunden mit Google');
         } else {
-            $this->SetValue('AuthStatus', '❌ Nicht autorisiert — Bitte Autorisierung starten');
+            $this->SetValue('AuthStatus', 'Nicht autorisiert - Bitte Autorisierung starten');
         }
     }
 
