@@ -8,10 +8,10 @@
     ],
     "parentRequirements": [],
     "childRequirements": [
-        "{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}"
+        "{F5569D5F-A5EC-4FDA-B728-44A96B393DF3}"
     ],
     "implemented": [
-        "{B2C3D4E5-F6A7-8901-BCDE-F12345678901}"
+        "{E3ADA00D-B4DD-49C8-973F-01B8E31DA07D}"
     ],
     "prefix": "SPG",
     "url": "https://github.com/pinkerunicorn/SymconSmartParty",

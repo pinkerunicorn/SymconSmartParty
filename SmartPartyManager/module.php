@@ -744,7 +744,7 @@ HTML;
     private function RequestFromGateway(string $function, array $parameters = []): mixed
     {
         $data = json_encode([
-            'DataID' => '{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}',
+            'DataID' => '{F5569D5F-A5EC-4FDA-B728-44A96B393DF3}',
             'Buffer' => json_encode([
                 'Function'   => $function,
                 'Parameters' => $parameters,
@@ -752,6 +752,10 @@ HTML;
         ]);
 
         $result = $this->SendDataToParent($data);
+        if ($result === false || $result === null) {
+            $this->SendDebug('RequestFromGateway', 'SendDataToParent returned false for: ' . $function, 0);
+            return null;
+        }
         return json_decode($result, true);
     }
 

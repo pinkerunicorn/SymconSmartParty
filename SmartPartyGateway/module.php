@@ -61,7 +61,7 @@ class SmartPartyGateway extends IPSModuleStrict
         $data = json_decode($JSONString, true);
         $this->SendDebug('ForwardData', 'DataID: ' . ($data['DataID'] ?? ''), 0);
 
-        if (($data['DataID'] ?? '') !== '{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}') {
+        if (($data['DataID'] ?? '') !== '{F5569D5F-A5EC-4FDA-B728-44A96B393DF3}') {
             return json_encode(['error' => 'Unknown DataID']);
         }
 
