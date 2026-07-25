@@ -740,8 +740,9 @@ class SmartPartyManager extends IPSModuleStrict
         <tbody>
             {$rows}
         </tbody>
-    </table>
-</div>
+HTML;
+    }
+
     private function GetGatewayID(): int
     {
         if (!$this->HasActiveParent()) {
