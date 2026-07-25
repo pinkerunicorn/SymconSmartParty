@@ -355,9 +355,10 @@ class SmartPartyManager extends IPSModuleStrict
             return;
         }
 
-        $sent    = 0;
-        $skipped = 0;
-        $errors  = 0;
+        $sent       = 0;
+        $skipped    = 0;
+        $errors     = 0;
+        $errorNames = [];
 
         foreach ($guests as &$guest) {
             $channel = $guest['channel'];
@@ -372,6 +373,7 @@ class SmartPartyManager extends IPSModuleStrict
                         $sent++;
                     } else {
                         $errors++;
+                        $errorNames[] = $guest['name'] . ' (E-Mail)';
                     }
                 } else {
                     $this->SendDebug('SendAll', 'No email for: ' . $guest['name'], 0);
@@ -389,6 +391,7 @@ class SmartPartyManager extends IPSModuleStrict
                         $sent++;
                     } else {
                         $errors++;
+                        $errorNames[] = $guest['name'] . ' (WhatsApp)';
                     }
                 } else {
                     $this->SendDebug('SendAll', 'No phone for: ' . $guest['name'], 0);
@@ -405,7 +408,12 @@ class SmartPartyManager extends IPSModuleStrict
         $this->SetValue('EventActive', true);
         $this->UpdateDisplayVariables();
 
-        echo "✅ Einladungen versendet: {$sent} erfolgreich, {$skipped} übersprungen, {$errors} Fehler.";
+        $summary = "Einladungen versendet: {$sent} erfolgreich, {$skipped} uebersprungen, {$errors} Fehler.";
+        if (!empty($errorNames)) {
+            $summary .= "\nFehler bei: " . implode(', ', $errorNames);
+            $summary .= "\nDetails im Debug-Log der Instanz (Rechtsklick -> Debug).";
+        }
+        echo $summary;
     }
 
     public function SendReminders(): void
@@ -565,10 +573,10 @@ class SmartPartyManager extends IPSModuleStrict
 
         try {
             SMTP_SendMailEx($smtpId, $guest['email'], $subject, $body);
-            $this->SendDebug('SendEmail', 'Sent to: ' . $guest['email'], 0);
+            $this->SendDebug('SendEmail', 'Gesendet an: ' . $guest['email'], 0);
             return true;
         } catch (Exception $e) {
-            $this->SendDebug('SendEmail', 'Error: ' . $e->getMessage(), 0);
+            $this->SendDebug('SendEmail', 'FEHLER fuer ' . $guest['name'] . ' (' . $guest['email'] . '): ' . $e->getMessage(), 0);
             return false;
         }
     }
