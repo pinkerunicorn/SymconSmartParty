@@ -12,9 +12,6 @@ class SmartPartyManager extends IPSModuleStrict
     {
         parent::Create();
 
-        // Splitter (SmartPartyGateway) automatisch verbinden
-        $this->ConnectParent('{2F9E1C8A-4D3B-4A7E-B6C9-5F2A8D1E3C7B}');
-
         // SMTP Verknüpfung
         $this->RegisterPropertyInteger('SMTPInstance', 0);
 
@@ -756,5 +753,14 @@ HTML;
 
         $result = $this->SendDataToParent($data);
         return json_decode($result, true);
+    }
+
+    public function GetCompatibleParents(): array
+    {
+        $compatible = [];
+        foreach (IPS_GetInstanceListByModuleID('{2F9E1C8A-4D3B-4A7E-B6C9-5F2A8D1E3C7B}') as $instanceID) {
+            $compatible[] = $instanceID;
+        }
+        return $compatible;
     }
 }
