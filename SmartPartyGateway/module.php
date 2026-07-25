@@ -53,32 +53,6 @@ class SmartPartyGateway extends IPSModuleStrict
     }
 
     // =========================================================================
-    // Data Flow — ForwardData (called by child SmartPartyManager)
-    // =========================================================================
-
-    public function ForwardData($JSONString): string
-    {
-        $data = json_decode($JSONString, true);
-        $this->SendDebug('ForwardData', 'DataID: ' . ($data['DataID'] ?? ''), 0);
-
-        if (($data['DataID'] ?? '') !== '{F5569D5F-A5EC-4FDA-B728-44A96B393DF3}') {
-            return json_encode(['error' => 'Unknown DataID']);
-        }
-
-        $buffer   = json_decode($data['Buffer'], true);
-        $function = $buffer['Function'] ?? '';
-        $params   = $buffer['Parameters'] ?? [];
-
-        $result = match ($function) {
-            'FetchGuests'      => $this->FetchGuests(),
-            'GetRSVPResponses' => $this->GetRSVPResponses($params['formId'] ?? ''),
-            default            => ['error' => 'Unknown function: ' . $function],
-        };
-
-        return json_encode($result);
-    }
-
-    // =========================================================================
     // Configuration Form
     // =========================================================================
 

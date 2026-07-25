@@ -12,7 +12,8 @@ class SmartPartyManager extends IPSModuleStrict
     {
         parent::Create();
 
-        // SMTP Verknüpfung
+        // Gateway & SMTP Verknüpfung
+        $this->RegisterPropertyInteger('GatewayInstance', 0);
         $this->RegisterPropertyInteger('SMTPInstance', 0);
 
         // WAHA
@@ -73,6 +74,10 @@ class SmartPartyManager extends IPSModuleStrict
         foreach ($this->GetReferenceList() as $refID) {
             $this->UnregisterReference($refID);
         }
+        $gatewayId = $this->ReadPropertyInteger('GatewayInstance');
+        if ($gatewayId > 1 && @IPS_ObjectExists($gatewayId)) {
+            $this->RegisterReference($gatewayId);
+        }
         $smtpId = $this->ReadPropertyInteger('SMTPInstance');
         if ($smtpId > 1 && @IPS_ObjectExists($smtpId)) {
             $this->RegisterReference($smtpId);
@@ -102,10 +107,15 @@ class SmartPartyManager extends IPSModuleStrict
 
         return json_encode([
             'elements' => [
-                // SMTP
                 [
                     'type'    => 'Label',
                     'caption' => '── Verknüpfungen ──────────────────────────────────',
+                ],
+                [
+                    'type'    => 'SelectInstance',
+                    'name'    => 'GatewayInstance',
+                    'caption' => 'SmartPartyGateway Instanz',
+                    'filter'  => '{2F9E1C8A-4D3B-4A7E-B6C9-5F2A8D1E3C7B}',
                 ],
                 [
                     'type'    => 'SelectInstance',
@@ -293,12 +303,13 @@ class SmartPartyManager extends IPSModuleStrict
 
     public function LoadGuests(): void
     {
-        if (!$this->HasActiveParent()) {
-            echo 'Fehler: Kein SmartPartyGateway (Splitter) verbunden.';
+        $gatewayId = $this->ReadPropertyInteger('GatewayInstance');
+        if ($gatewayId <= 0 || !IPS_InstanceExists($gatewayId)) {
+            echo 'Fehler: SmartPartyGateway Instanz nicht konfiguriert.';
             return;
         }
 
-        $guests = $this->RequestFromGateway('FetchGuests');
+        $guests = SPG_FetchGuests($gatewayId);
 
         if (empty($guests)) {
             echo 'Keine Gäste gefunden. Prüfe die Google Contacts Labels im SmartPartyGateway.';
@@ -439,11 +450,12 @@ class SmartPartyManager extends IPSModuleStrict
             return;
         }
 
-        if (!$this->HasActiveParent()) {
+        $gatewayId = $this->ReadPropertyInteger('GatewayInstance');
+        if ($gatewayId <= 0 || !IPS_InstanceExists($gatewayId)) {
             return;
         }
 
-        $responses = $this->RequestFromGateway('GetRSVPResponses', ['formId' => $formId]);
+        $responses = SPG_GetRSVPResponses($gatewayId, $formId);
         if (empty($responses)) {
             $this->SendDebug('CheckRSVP', 'No responses yet', 0);
             return;
@@ -740,23 +752,4 @@ class SmartPartyManager extends IPSModuleStrict
         </tbody>
 HTML;
     }
-
-    private function RequestFromGateway(string $function, array $parameters = []): mixed
-    {
-        $data = json_encode([
-            'DataID' => '{F5569D5F-A5EC-4FDA-B728-44A96B393DF3}',
-            'Buffer' => json_encode([
-                'Function'   => $function,
-                'Parameters' => $parameters,
-            ]),
-        ]);
-
-        $result = $this->SendDataToParent($data);
-        if ($result === false || $result === null) {
-            $this->SendDebug('RequestFromGateway', 'SendDataToParent returned false for: ' . $function, 0);
-            return null;
-        }
-        return json_decode($result, true);
-    }
-
 }

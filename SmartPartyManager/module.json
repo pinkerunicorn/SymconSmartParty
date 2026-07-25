@@ -6,13 +6,9 @@
     "aliases": [
         "Smart Party Manager"
     ],
-    "parentRequirements": [
-        "{E3ADA00D-B4DD-49C8-973F-01B8E31DA07D}"
-    ],
+    "parentRequirements": [],
     "childRequirements": [],
-    "implemented": [
-        "{F5569D5F-A5EC-4FDA-B728-44A96B393DF3}"
-    ],
+    "implemented": [],
     "prefix": "SPM",
     "url": "https://github.com/pinkerunicorn/SymconSmartParty",
     "author": "Florian Graßinger"
