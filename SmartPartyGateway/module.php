@@ -237,7 +237,9 @@ class SmartPartyGateway extends IPSModuleStrict
 
         if ($httpCode !== 200 || $response === false) {
             $this->SendDebug('OAuth', 'Token exchange failed HTTP ' . $httpCode . ': ' . $response, 0);
-            echo '<h2>❌ Token-Austausch fehlgeschlagen</h2><p>Bitte versuche es erneut.</p>';
+            echo '<h2>❌ Token-Austausch fehlgeschlagen</h2>';
+            echo '<p><strong>Details (HTTP ' . $httpCode . '):</strong> ' . htmlspecialchars((string)$response) . '</p>';
+            echo '<p>Bitte prüfe Client-ID, Client-Secret und die Autorisierte Weiterleitungs-URI in der Google Cloud Console.</p>';
             return;
         }
 
