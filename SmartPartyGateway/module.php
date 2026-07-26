@@ -41,7 +41,10 @@ class SmartPartyGateway extends IPSModuleStrict
         $this->RegisterAttributeInteger('GoogleTokenExpiry', 0);
 
         // Status variable
-        $this->RegisterVariableString('AuthStatus', 'Google Auth Status', '', 0);
+        $this->RegisterVariableString('AuthStatus', 'Google Auth Status', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'         => 'Network',
+        ], 0);
     }
 
     public function ApplyChanges(): void

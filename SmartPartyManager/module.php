@@ -49,15 +49,41 @@ class SmartPartyManager extends IPSModuleStrict
         $this->RegisterAttributeString('EventData', '{}');
 
         // Symcon-Variablen
-        $this->RegisterVariableBoolean('EventActive', 'Event aktiv', '', 0);
-        $this->RegisterVariableString('EventName', 'Event Name', '', 1);
-        $this->RegisterVariableString('EventDate', 'Datum & Uhrzeit', '', 2);
-        $this->RegisterVariableString('EventLocation', 'Ort', '', 3);
-        $this->RegisterVariableInteger('TotalGuests', 'Gaeste gesamt', '', 4);
-        $this->RegisterVariableInteger('ConfirmedGuests', 'Zusagen', '', 5);
-        $this->RegisterVariableInteger('DeclinedGuests', 'Absagen', '', 6);
-        $this->RegisterVariableInteger('PendingGuests', 'Ausstehend', '', 7);
-        $this->RegisterVariableString('GuestListHTML', 'Gaesteliste', '', 8);
+        $this->RegisterVariableBoolean('EventActive', 'Event aktiv', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_SWITCH,
+            'ICON'         => 'Calendar',
+        ], 0);
+        $this->RegisterVariableString('EventName', 'Event Name', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'         => 'Information',
+        ], 1);
+        $this->RegisterVariableString('EventDate', 'Datum & Uhrzeit', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'         => 'Clock',
+        ], 2);
+        $this->RegisterVariableString('EventLocation', 'Ort', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'         => 'Location',
+        ], 3);
+        $this->RegisterVariableInteger('TotalGuests', 'Gaeste gesamt', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'         => 'Persons',
+        ], 4);
+        $this->RegisterVariableInteger('ConfirmedGuests', 'Zusagen', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'         => 'Ok',
+        ], 5);
+        $this->RegisterVariableInteger('DeclinedGuests', 'Absagen', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'         => 'Warning',
+        ], 6);
+        $this->RegisterVariableInteger('PendingGuests', 'Ausstehend', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'         => 'Clock',
+        ], 7);
+        $this->RegisterVariableString('GuestListHTML', 'Gaesteliste', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+        ], 8);
         IPS_SetVariableCustomPresentation($this->GetIDForIdent('GuestListHTML'), [
             'type' => 'HTML',
         ]);
