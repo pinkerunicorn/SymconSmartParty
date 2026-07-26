@@ -460,6 +460,7 @@ class SmartPartyManager extends IPSModuleStrict
 
         $gatewayId = $this->ReadPropertyInteger('GatewayInstance');
         if ($gatewayId <= 0 || !IPS_InstanceExists($gatewayId)) {
+            $this->SLog('WARNING', 'RSVP-Prüfung abgebrochen', 'GatewayInstance nicht konfiguriert (ID: ' . $gatewayId . ')');
             return;
         }
 
@@ -559,7 +560,7 @@ class SmartPartyManager extends IPSModuleStrict
     {
         $smtpId = $this->ReadPropertyInteger('SMTPInstance');
         if ($smtpId <= 0 || !IPS_InstanceExists($smtpId)) {
-            $this->SendDebug('SendEmail', 'No SMTP instance configured', 0);
+            $this->SLog('ERROR', 'E-Mail nicht gesendet', 'Keine SMTP-Instanz konfiguriert');
             return false;
         }
 
