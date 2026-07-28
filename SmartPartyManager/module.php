@@ -555,11 +555,10 @@ class SmartPartyManager extends IPSModuleStrict
                     $value = $ta['value'] ?? '';
                     if (!empty($value)) {
                         $answered = true;
-                        // Prüfen ob "Ja" enthalten
+                        // Pruefen ob "Ja" enthalten
                         if (stripos($value, $yesValue) !== false) {
                             $isYes = true;
                         }
-                        break 2;
                     }
                 }
             }
@@ -623,8 +622,11 @@ class SmartPartyManager extends IPSModuleStrict
             $body    = "Hallo {$guest['name']}, wir warten noch auf deine Rückmeldung!\n\n" . $body;
         }
 
+        // Symcon SMTP sendet standardmaessig HTML -> Newlines in <br> umwandeln
+        $bodyHtml = nl2br($body);
+
         try {
-            SMTP_SendMailEx($smtpId, $guest['email'], $subject, $body);
+            SMTP_SendMailEx($smtpId, $guest['email'], $subject, $bodyHtml);
             $this->SendDebug('SendEmail', 'Gesendet an: ' . $guest['email'], 0);
             return true;
         } catch (Exception $e) {
