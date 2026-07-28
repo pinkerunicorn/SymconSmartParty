@@ -48,45 +48,32 @@ class SmartPartyManager extends IPSModuleStrict
         // Event-Daten (JSON) — persistent gespeichert
         $this->RegisterAttributeString('EventData', '{}');
 
-        // Symcon-Variablen
-        $this->RegisterVariableBoolean('EventActive', 'Event aktiv', [
-            'PRESENTATION' => VARIABLE_PRESENTATION_SWITCH,
-            'ICON'         => 'Calendar',
-        ], 0);
-        $this->RegisterVariableString('EventName', 'Event Name', [
-            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'         => 'Information',
-        ], 1);
-        $this->RegisterVariableString('EventDate', 'Datum & Uhrzeit', [
-            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'         => 'Clock',
-        ], 2);
-        $this->RegisterVariableString('EventLocation', 'Ort', [
-            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'         => 'Location',
-        ], 3);
-        $this->RegisterVariableInteger('TotalGuests', 'Gaeste gesamt', [
-            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'         => 'Persons',
-        ], 4);
-        $this->RegisterVariableInteger('ConfirmedGuests', 'Zusagen', [
-            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'         => 'Ok',
-        ], 5);
-        $this->RegisterVariableInteger('DeclinedGuests', 'Absagen', [
-            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'         => 'Warning',
-        ], 6);
-        $this->RegisterVariableInteger('PendingGuests', 'Ausstehend', [
-            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'         => 'Clock',
-        ], 7);
-        $this->RegisterVariableString('GuestListHTML', 'Gaesteliste', [
-            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-        ], 8);
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('GuestListHTML'), [
-            'type' => 'HTML',
-        ]);
+        // Variablen
+        $this->RegisterVariableBoolean('EventActive', 'Event aktiv', '~Switch', 0);
+        IPS_SetIcon($this->GetIDForIdent('EventActive'), 'Calendar');
+
+        $this->RegisterVariableString('EventName', 'Event Name', '', 1);
+        IPS_SetIcon($this->GetIDForIdent('EventName'), 'Information');
+
+        $this->RegisterVariableString('EventDate', 'Datum & Uhrzeit', '', 2);
+        IPS_SetIcon($this->GetIDForIdent('EventDate'), 'Clock');
+
+        $this->RegisterVariableString('EventLocation', 'Ort', '', 3);
+        IPS_SetIcon($this->GetIDForIdent('EventLocation'), 'Location');
+
+        $this->RegisterVariableInteger('TotalGuests', 'Gäste gesamt', '', 4);
+        IPS_SetIcon($this->GetIDForIdent('TotalGuests'), 'Persons');
+
+        $this->RegisterVariableInteger('ConfirmedGuests', 'Zusagen', '', 5);
+        IPS_SetIcon($this->GetIDForIdent('ConfirmedGuests'), 'Ok');
+
+        $this->RegisterVariableInteger('DeclinedGuests', 'Absagen', '', 6);
+        IPS_SetIcon($this->GetIDForIdent('DeclinedGuests'), 'Warning');
+
+        $this->RegisterVariableInteger('PendingGuests', 'Ausstehend', '', 7);
+        IPS_SetIcon($this->GetIDForIdent('PendingGuests'), 'Clock');
+
+        $this->RegisterVariableString('GuestListHTML', 'Gaesteliste', '~HTMLBox', 8);
 
         // Timer für periodische RSVP-Prüfung
         $this->RegisterTimer('RSVPCheckTimer', 0, 'SPM_CheckRSVP($_IPS[\'TARGET\']);');
