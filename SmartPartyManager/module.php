@@ -31,8 +31,7 @@ class SmartPartyManager extends IPSModuleStrict
         // RSVP
         $this->RegisterPropertyString('RSVPFormURL', '');
         $this->RegisterPropertyString('RSVPEmailEntry', '');
-        $this->RegisterPropertyString('RSVPFirstNameEntry', '');
-        $this->RegisterPropertyString('RSVPLastNameEntry', '');
+        $this->RegisterPropertyString('RSVPNameEntry', '');
         $this->RegisterPropertyString('RSVPYesValue', 'Ja');
         $this->RegisterPropertyInteger('RSVPCheckInterval', 60);
 
@@ -198,17 +197,12 @@ class SmartPartyManager extends IPSModuleStrict
                     'width'   => '100%',
                     'caption' => 'Prefill Entry ID für E-Mail (z.B. entry.123456789 - optional)',
                 ],
+
                 [
                     'type'    => 'ValidationTextBox',
-                    'name'    => 'RSVPFirstNameEntry',
+                    'name'    => 'RSVPNameEntry',
                     'width'   => '100%',
-                    'caption' => 'Prefill Entry ID für Vorname (optional)',
-                ],
-                [
-                    'type'    => 'ValidationTextBox',
-                    'name'    => 'RSVPLastNameEntry',
-                    'width'   => '100%',
-                    'caption' => 'Prefill Entry ID für Nachname (optional)',
+                    'caption' => 'Prefill Entry ID für Vor- und Nachname (optional)',
                 ],
                 [
                     'type'    => 'ValidationTextBox',
@@ -698,8 +692,7 @@ class SmartPartyManager extends IPSModuleStrict
     {
         $formUrl  = $event['formUrl'] ?? '';
         $entryEmail = trim($this->ReadPropertyString('RSVPEmailEntry'));
-        $entryFirst = trim($this->ReadPropertyString('RSVPFirstNameEntry'));
-        $entryLast  = trim($this->ReadPropertyString('RSVPLastNameEntry'));
+        $entryName  = trim($this->ReadPropertyString('RSVPNameEntry'));
         
         $rsvpLink = $formUrl;
         $params   = [];
@@ -709,19 +702,9 @@ class SmartPartyManager extends IPSModuleStrict
             $params[] = $key . '=' . urlencode($guest['email']);
         }
         
-        if (!empty($guest['name'])) {
-            $nameParts = explode(' ', $guest['name'], 2);
-            $firstName = $nameParts[0];
-            $lastName  = $nameParts[1] ?? '';
-            
-            if (!empty($entryFirst)) {
-                $key = str_starts_with($entryFirst, 'entry.') ? $entryFirst : 'entry.' . $entryFirst;
-                $params[] = $key . '=' . urlencode($firstName);
-            }
-            if (!empty($entryLast) && !empty($lastName)) {
-                $key = str_starts_with($entryLast, 'entry.') ? $entryLast : 'entry.' . $entryLast;
-                $params[] = $key . '=' . urlencode($lastName);
-            }
+        if (!empty($entryName) && !empty($guest['name'])) {
+            $key = str_starts_with($entryName, 'entry.') ? $entryName : 'entry.' . $entryName;
+            $params[] = $key . '=' . urlencode($guest['name']);
         }
         
         if (!empty($params)) {
