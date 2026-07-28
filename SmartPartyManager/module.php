@@ -31,6 +31,8 @@ class SmartPartyManager extends IPSModuleStrict
         // RSVP
         $this->RegisterPropertyString('RSVPFormURL', '');
         $this->RegisterPropertyString('RSVPEmailEntry', '');
+        $this->RegisterPropertyString('RSVPFirstNameEntry', '');
+        $this->RegisterPropertyString('RSVPLastNameEntry', '');
         $this->RegisterPropertyString('RSVPYesValue', 'Ja');
         $this->RegisterPropertyInteger('RSVPCheckInterval', 60);
 
@@ -195,6 +197,18 @@ class SmartPartyManager extends IPSModuleStrict
                     'name'    => 'RSVPEmailEntry',
                     'width'   => '100%',
                     'caption' => 'Prefill Entry ID für E-Mail (z.B. entry.123456789 - optional)',
+                ],
+                [
+                    'type'    => 'ValidationTextBox',
+                    'name'    => 'RSVPFirstNameEntry',
+                    'width'   => '100%',
+                    'caption' => 'Prefill Entry ID für Vorname (optional)',
+                ],
+                [
+                    'type'    => 'ValidationTextBox',
+                    'name'    => 'RSVPLastNameEntry',
+                    'width'   => '100%',
+                    'caption' => 'Prefill Entry ID für Nachname (optional)',
                 ],
                 [
                     'type'    => 'ValidationTextBox',
@@ -456,8 +470,12 @@ class SmartPartyManager extends IPSModuleStrict
             $this->WriteAttributeString('EventData', json_encode($eventData, JSON_UNESCAPED_UNICODE));
         }
 
-        if (empty($formId) || empty($guests)) {
-            $this->SendDebug('CheckRSVP', 'No formId or no guests', 0);
+        if (empty($formId)) {
+            echo "Fehler: Kein Formular konfiguriert. Bitte erstelle das Event neu (Klick auf 'Event erstellen').";
+            return;
+        }
+        if (empty($guests)) {
+            echo "Fehler: Keine Gäste geladen. Bitte lade zuerst die Gäste.";
             return;
         }
 
@@ -679,15 +697,35 @@ class SmartPartyManager extends IPSModuleStrict
     private function FillTemplate(string $template, array $guest, array $event, bool $isHtml = false): string
     {
         $formUrl  = $event['formUrl'] ?? '';
-        $entryKey = trim($this->ReadPropertyString('RSVPEmailEntry'));
+        $entryEmail = trim($this->ReadPropertyString('RSVPEmailEntry'));
+        $entryFirst = trim($this->ReadPropertyString('RSVPFirstNameEntry'));
+        $entryLast  = trim($this->ReadPropertyString('RSVPLastNameEntry'));
+        
         $rsvpLink = $formUrl;
+        $params   = [];
 
-        if (!empty($entryKey) && !empty($guest['email'])) {
-            $emailEnc = urlencode($guest['email']);
-            if (!str_starts_with($entryKey, 'entry.')) {
-                $entryKey = 'entry.' . $entryKey;
+        if (!empty($entryEmail) && !empty($guest['email'])) {
+            $key = str_starts_with($entryEmail, 'entry.') ? $entryEmail : 'entry.' . $entryEmail;
+            $params[] = $key . '=' . urlencode($guest['email']);
+        }
+        
+        if (!empty($guest['name'])) {
+            $nameParts = explode(' ', $guest['name'], 2);
+            $firstName = $nameParts[0];
+            $lastName  = $nameParts[1] ?? '';
+            
+            if (!empty($entryFirst)) {
+                $key = str_starts_with($entryFirst, 'entry.') ? $entryFirst : 'entry.' . $entryFirst;
+                $params[] = $key . '=' . urlencode($firstName);
             }
-            $rsvpLink .= "?usp=pp_url&{$entryKey}={$emailEnc}";
+            if (!empty($entryLast) && !empty($lastName)) {
+                $key = str_starts_with($entryLast, 'entry.') ? $entryLast : 'entry.' . $entryLast;
+                $params[] = $key . '=' . urlencode($lastName);
+            }
+        }
+        
+        if (!empty($params)) {
+            $rsvpLink .= "?usp=pp_url&" . implode('&', $params);
         }
         
         $rsvpDisplay = $isHtml ? '<a href="' . $rsvpLink . '">' . htmlspecialchars($rsvpLink) . '</a>' : $rsvpLink;
