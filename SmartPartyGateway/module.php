@@ -2,8 +2,12 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/../libs/Trait_SmartLog.php';
+
 class SmartPartyGateway extends IPSModuleStrict
 {
+    use SmartLog_Trait;
+
     // Google OAuth2 / API Endpoints
     private const GOOGLE_AUTH_URL   = 'https://accounts.google.com/o/oauth2/v2/auth';
     private const GOOGLE_TOKEN_URL  = 'https://oauth2.googleapis.com/token';
