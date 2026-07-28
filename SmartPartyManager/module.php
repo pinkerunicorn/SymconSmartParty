@@ -17,28 +17,16 @@ class SmartPartyManager extends IPSModuleStrict
         $this->RegisterPropertyInteger('SMTPInstance', 0);
 
         // WAHA
-        $this->RegisterPropertyString('WAHABaseURL', 'http://localhost:3000');
+        $this->RegisterPropertyString('WAHABaseURL', 'http://127.0.0.1:3000');
         $this->RegisterPropertyString('WAHAApiKey', '');
         $this->RegisterPropertyString('WAHASession', 'default');
 
-        // Gastgeber
-        $this->RegisterPropertyString('HostName', '');
-
         // E-Mail Template
-        $this->RegisterPropertyString('EmailSubject', 'Einladung: {EventName} 🎉');
-        $this->RegisterPropertyString('EmailTemplate',
-            "Liebe(r) {GuestName},\n\nwir laden dich herzlich zu unserer Gartenparty \"{EventName}\" ein!\n\n" .
-            "📅 Wann: {EventDate} um {EventTime} Uhr\n📍 Wo: {EventLocation}\n\n" .
-            "Bitte gib uns über folgenden Link Bescheid, ob du kommen kannst:\n{RSVPLink}\n\n" .
-            "Wir freuen uns auf dich!\nLiebe Grüße, {HostName}"
-        );
+        $this->RegisterPropertyString('EmailSubject', 'Einladung!');
+        $this->RegisterPropertyString('EmailTemplate', "Liebe(r) {GuestName},\n\nwir laden dich herzlich ein!\n\nLink: {RSVPLink}");
 
         // WhatsApp Template
-        $this->RegisterPropertyString('WhatsAppTemplate',
-            "Hallo {GuestName}! 🎉\n\nDu bist herzlich eingeladen zu unserer Gartenparty \"{EventName}\"!\n\n" .
-            "📅 {EventDate} um {EventTime} Uhr\n📍 {EventLocation}\n\n" .
-            "Rückmeldung bitte hier: {RSVPLink}\n\nLiebe Grüße, {HostName}"
-        );
+        $this->RegisterPropertyString('WhatsAppTemplate', "Hallo {GuestName}! 🎉\n\nDu bist herzlich eingeladen!\n\nRückmeldung: {RSVPLink}");
 
         // RSVP
         $this->RegisterPropertyString('RSVPFormURL', '');
@@ -51,15 +39,6 @@ class SmartPartyManager extends IPSModuleStrict
         // Variablen
         $this->RegisterVariableBoolean('EventActive', 'Event aktiv', '', 0);
         IPS_SetIcon($this->GetIDForIdent('EventActive'), 'Calendar');
-
-        $this->RegisterVariableString('EventName', 'Event Name', '', 1);
-        IPS_SetIcon($this->GetIDForIdent('EventName'), 'Information');
-
-        $this->RegisterVariableString('EventDate', 'Datum & Uhrzeit', '', 2);
-        IPS_SetIcon($this->GetIDForIdent('EventDate'), 'Clock');
-
-        $this->RegisterVariableString('EventLocation', 'Ort', '', 3);
-        IPS_SetIcon($this->GetIDForIdent('EventLocation'), 'Location');
 
         $this->RegisterVariableInteger('TotalGuests', 'Gäste gesamt', '', 4);
         IPS_SetIcon($this->GetIDForIdent('TotalGuests'), 'Persons');
@@ -85,6 +64,11 @@ class SmartPartyManager extends IPSModuleStrict
     public function ApplyChanges(): void
     {
         parent::ApplyChanges();
+
+        // Alte Variablen aufräumen falls vorhanden
+        $this->MaintainVariable('EventName', 'Event Name', 3, '', 1, false);
+        $this->MaintainVariable('EventDate', 'Datum & Uhrzeit', 3, '', 2, false);
+        $this->MaintainVariable('EventLocation', 'Ort', 3, '', 3, false);
 
         // Referenzen registrieren
         foreach ($this->GetReferenceList() as $refID) {
@@ -162,16 +146,9 @@ class SmartPartyManager extends IPSModuleStrict
                     'width'   => '100%',
                     'caption' => 'WAHA Session Name',
                 ],
-                // Gastgeber
                 [
                     'type'    => 'Label',
                     'caption' => '── Einladung ──────────────────────────────────────',
-                ],
-                [
-                    'type'    => 'ValidationTextBox',
-                    'name'    => 'HostName',
-                    'width'   => '100%',
-                    'caption' => 'Name des Gastgebers (für Templates)',
                 ],
                 [
                     'type'    => 'ValidationTextBox',
@@ -181,7 +158,7 @@ class SmartPartyManager extends IPSModuleStrict
                 ],
                 [
                     'type'    => 'Label',
-                    'caption' => 'E-Mail Text (Platzhalter: {GuestName} {EventName} {EventDate} {EventTime} {EventLocation} {RSVPLink} {HostName})',
+                    'caption' => 'E-Mail Text (Platzhalter: {GuestName} {RSVPLink})',
                 ],
                 [
                     'type'      => 'ValidationTextBox',
@@ -232,37 +209,9 @@ class SmartPartyManager extends IPSModuleStrict
                     'caption' => '── Event erstellen ────────────────────────────────',
                 ],
                 [
-                    'type'    => 'ValidationTextBox',
-                    'name'    => 'NewEventName',
-                    'width'   => '100%',
-                    'caption' => 'Event Name (z.B. Sommerfest 2026)',
-                    'value'   => $event['name'] ?? '',
-                ],
-                [
-                    'type'    => 'ValidationTextBox',
-                    'name'    => 'NewEventDate',
-                    'width'   => '100%',
-                    'caption' => 'Datum (z.B. 15.08.2026)',
-                    'value'   => $event['date'] ?? '',
-                ],
-                [
-                    'type'    => 'ValidationTextBox',
-                    'name'    => 'NewEventTime',
-                    'width'   => '100%',
-                    'caption' => 'Uhrzeit (z.B. 16:00)',
-                    'value'   => $event['time'] ?? '',
-                ],
-                [
-                    'type'    => 'ValidationTextBox',
-                    'name'    => 'NewEventLocation',
-                    'width'   => '100%',
-                    'caption' => 'Ort',
-                    'value'   => $event['location'] ?? '',
-                ],
-                [
                     'type'    => 'Button',
                     'caption' => '🎉 Event erstellen',
-                    'onClick' => 'SPM_CreateEvent($id, $NewEventName, $NewEventDate, $NewEventTime, $NewEventLocation);',
+                    'onClick' => 'SPM_CreateEvent($id);',
                 ],
                 [
                     'type'    => 'Label',
@@ -301,13 +250,8 @@ class SmartPartyManager extends IPSModuleStrict
     // Public Functions (SPM_* Prefix)
     // =========================================================================
 
-    public function CreateEvent(string $name, string $date, string $time, string $location): void
+    public function CreateEvent(): void
     {
-        if (empty($name) || empty($date)) {
-            echo 'Fehler: Name und Datum sind Pflichtfelder.';
-            return;
-        }
-
         $formUrl = $this->ReadPropertyString('RSVPFormURL');
         $formId  = $this->ExtractFormId($formUrl);
 
@@ -320,10 +264,6 @@ class SmartPartyManager extends IPSModuleStrict
 
         $eventData = [
             'event' => [
-                'name'     => $name,
-                'date'     => $date,
-                'time'     => $time,
-                'location' => $location,
                 'formId'   => $formId,
                 'formUrl'  => $cleanViewformUrl,
             ],
@@ -337,7 +277,7 @@ class SmartPartyManager extends IPSModuleStrict
         $interval = $this->ReadPropertyInteger('RSVPCheckInterval');
         $this->SetTimerInterval('RSVPCheckTimer', $interval * 60 * 1000);
 
-        echo "✅ Event \"{$name}\" erstellt!\nJetzt Gäste laden mit [Gäste aus Google Contacts laden].";
+        echo "✅ Event erstellt!\nJetzt Gäste laden mit [Gäste aus Google Contacts laden].";
     }
 
     public function LoadGuests(): void
@@ -385,8 +325,8 @@ class SmartPartyManager extends IPSModuleStrict
         $guests    = $eventData['guests'] ?? [];
         $event     = $eventData['event'] ?? [];
 
-        if (empty($event['name'] ?? '')) {
-            echo 'Fehler: Kein aktives Event. Bitte zuerst ein Event erstellen.';
+        if (empty($event['formId'] ?? '')) {
+            echo 'Fehler: Kein aktives Event (Form ID fehlt). Bitte zuerst ein Event erstellen.';
             return;
         }
         if (empty($guests)) {
@@ -595,9 +535,6 @@ class SmartPartyManager extends IPSModuleStrict
     {
         $this->WriteAttributeString('EventData', '{}');
         $this->SetValue('EventActive', false);
-        $this->SetValue('EventName', '');
-        $this->SetValue('EventDate', '');
-        $this->SetValue('EventLocation', '');
         $this->SetValue('TotalGuests', 0);
         $this->SetValue('ConfirmedGuests', 0);
         $this->SetValue('DeclinedGuests', 0);
@@ -727,17 +664,16 @@ class SmartPartyManager extends IPSModuleStrict
 
     private function FillTemplate(string $template, array $guest, array $event): string
     {
-        $placeholders = [
+        $formUrl  = $event['formUrl'] ?? '';
+        $emailEnc = urlencode($guest['email'] ?? '');
+        $rsvpLink = $formUrl . "?usp=pp_url&entry.123456789={$emailEnc}";
+
+        $replace = [
             '{GuestName}'     => $guest['name'] ?? '',
-            '{EventName}'     => $event['name'] ?? '',
-            '{EventDate}'     => $event['date'] ?? '',
-            '{EventTime}'     => $event['time'] ?? '',
-            '{EventLocation}' => $event['location'] ?? '',
-            '{RSVPLink}'      => $event['formUrl'] ?? '',
-            '{HostName}'      => $this->ReadPropertyString('HostName'),
+            '{RSVPLink}'      => $rsvpLink,
         ];
 
-        return str_replace(array_keys($placeholders), array_values($placeholders), $template);
+        return str_replace(array_keys($replace), array_values($replace), $template);
     }
 
     private function ExtractFormId(string $formUrl): string
@@ -774,18 +710,15 @@ class SmartPartyManager extends IPSModuleStrict
 
     private function UpdateDisplayVariables(): void
     {
-        $data   = $this->GetEventData();
-        $event  = $data['event'] ?? [];
-        $guests = $data['guests'] ?? [];
+        $eventData = $this->GetEventData();
+        $guests    = $eventData['guests'] ?? [];
+        $event     = $eventData['event'] ?? [];
 
         $total     = count($guests);
         $confirmed = count(array_filter($guests, fn($g) => $g['status'] === 'confirmed'));
         $declined  = count(array_filter($guests, fn($g) => $g['status'] === 'declined'));
         $pending   = count(array_filter($guests, fn($g) => $g['status'] === 'pending'));
 
-        $this->SetValue('EventName', $event['name'] ?? '');
-        $this->SetValue('EventDate', ($event['date'] ?? '') . (!empty($event['time']) ? ' · ' . $event['time'] . ' Uhr' : ''));
-        $this->SetValue('EventLocation', $event['location'] ?? '');
         $this->SetValue('TotalGuests', $total);
         $this->SetValue('ConfirmedGuests', $confirmed);
         $this->SetValue('DeclinedGuests', $declined);
@@ -798,10 +731,6 @@ class SmartPartyManager extends IPSModuleStrict
         if (empty($guests)) {
             return '<div style="font-family:sans-serif;padding:20px;color:#888;">Noch keine Gäste geladen.</div>';
         }
-
-        $eventTitle = htmlspecialchars($event['name'] ?? '');
-        $eventDate  = htmlspecialchars(($event['date'] ?? '') . (!empty($event['time']) ? ' · ' . $event['time'] . ' Uhr' : ''));
-        $eventLoc   = htmlspecialchars($event['location'] ?? '');
 
         $rows = '';
         foreach ($guests as $g) {
@@ -833,29 +762,23 @@ class SmartPartyManager extends IPSModuleStrict
 
             $rows .= "<tr style=\"background:{$statusColor};\">
                 <td style=\"padding:8px 12px;\">{$statusIcon} <strong>{$name}</strong></td>
-                <td style=\"padding:8px 12px;font-size:0.9em;color:#555;\">{$contact}</td>
-                <td style=\"padding:8px 12px;text-align:center;\">{$channelIcon}</td>
-                <td style=\"padding:8px 12px;text-align:center;\">{$statusText}</td>
-                <td style=\"padding:8px 12px;text-align:center;font-size:0.85em;\">{$invitedAt}</td>
-                <td style=\"padding:8px 12px;text-align:center;font-size:0.85em;\">{$respondedAt}</td>
+                <td style=\"padding:8px 12px;\">{$contact}</td>
+                <td style=\"padding:8px 12px;\">{$channelIcon}</td>
+                <td style=\"padding:8px 12px;\">{$statusText}</td>
+                <td style=\"padding:8px 12px;font-size:0.85em;color:#555;\">Einladung: {$invitedAt}<br>Antwort: {$respondedAt}</td>
             </tr>";
         }
 
         return <<<HTML
 <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:900px;">
-    <div style="background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;padding:16px 20px;border-radius:10px 10px 0 0;">
-        <h2 style="margin:0;font-size:1.2em;">🎉 {$eventTitle}</h2>
-        <p style="margin:4px 0 0;font-size:0.9em;opacity:0.9;">📅 {$eventDate} &nbsp;·&nbsp; 📍 {$eventLoc}</p>
-    </div>
     <table style="width:100%;border-collapse:collapse;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
         <thead>
-            <tr style="background:#4a5568;color:#fff;font-size:0.85em;">
-                <th style="padding:8px 12px;text-align:left;">Name</th>
-                <th style="padding:8px 12px;text-align:left;">Kontakt</th>
-                <th style="padding:8px 12px;text-align:center;">Kanal</th>
-                <th style="padding:8px 12px;text-align:center;">Status</th>
-                <th style="padding:8px 12px;text-align:center;">Eingeladen</th>
-                <th style="padding:8px 12px;text-align:center;">Geantwortet</th>
+            <tr style="background:#f1f1f1;text-align:left;">
+                <th style="padding:10px 12px;">Gast</th>
+                <th style="padding:10px 12px;">Kontakt</th>
+                <th style="padding:10px 12px;">Kanal</th>
+                <th style="padding:10px 12px;">Status</th>
+                <th style="padding:10px 12px;">Zeitstempel</th>
             </tr>
         </thead>
         <tbody>
