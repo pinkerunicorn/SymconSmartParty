@@ -30,6 +30,7 @@ class SmartPartyManager extends IPSModuleStrict
 
         // RSVP
         $this->RegisterPropertyString('RSVPFormURL', '');
+        $this->RegisterPropertyString('RSVPEmailEntry', '');
         $this->RegisterPropertyString('RSVPYesValue', 'Ja');
         $this->RegisterPropertyInteger('RSVPCheckInterval', 60);
 
@@ -188,6 +189,12 @@ class SmartPartyManager extends IPSModuleStrict
                     'name'    => 'RSVPFormURL',
                     'width'   => '100%',
                     'caption' => 'Google Form URL (komplette URL)',
+                ],
+                [
+                    'type'    => 'ValidationTextBox',
+                    'name'    => 'RSVPEmailEntry',
+                    'width'   => '100%',
+                    'caption' => 'Prefill Entry ID für E-Mail (z.B. entry.123456789 - optional)',
                 ],
                 [
                     'type'    => 'ValidationTextBox',
@@ -672,8 +679,16 @@ class SmartPartyManager extends IPSModuleStrict
     private function FillTemplate(string $template, array $guest, array $event, bool $isHtml = false): string
     {
         $formUrl  = $event['formUrl'] ?? '';
-        $emailEnc = urlencode($guest['email'] ?? '');
-        $rsvpLink = $formUrl . "?usp=pp_url&entry.123456789={$emailEnc}";
+        $entryKey = trim($this->ReadPropertyString('RSVPEmailEntry'));
+        $rsvpLink = $formUrl;
+
+        if (!empty($entryKey) && !empty($guest['email'])) {
+            $emailEnc = urlencode($guest['email']);
+            if (!str_starts_with($entryKey, 'entry.')) {
+                $entryKey = 'entry.' . $entryKey;
+            }
+            $rsvpLink .= "?usp=pp_url&{$entryKey}={$emailEnc}";
+        }
         
         $rsvpDisplay = $isHtml ? '<a href="' . $rsvpLink . '">' . htmlspecialchars($rsvpLink) . '</a>' : $rsvpLink;
 
