@@ -128,6 +128,7 @@ class SmartPartyManager extends IPSModuleStrict
     public function GetConfigurationForm(): string
     {
         $eventData = $this->GetEventData();
+        $event = $eventData['event'] ?? [];
         $hasEvent  = !empty($eventData['event']['name'] ?? '');
         $hasGuests = !empty($eventData['guests'] ?? []);
 
@@ -233,25 +234,25 @@ class SmartPartyManager extends IPSModuleStrict
                     'type'    => 'ValidationTextBox',
                     'name'    => 'NewEventName',
                     'caption' => 'Event Name (z.B. Sommerfest 2026)',
-                    'value'   => '',
+                    'value'   => $event['name'] ?? '',
                 ],
                 [
                     'type'    => 'ValidationTextBox',
                     'name'    => 'NewEventDate',
                     'caption' => 'Datum (z.B. 15.08.2026)',
-                    'value'   => '',
+                    'value'   => $event['date'] ?? '',
                 ],
                 [
                     'type'    => 'ValidationTextBox',
                     'name'    => 'NewEventTime',
                     'caption' => 'Uhrzeit (z.B. 16:00)',
-                    'value'   => '',
+                    'value'   => $event['time'] ?? '',
                 ],
                 [
                     'type'    => 'ValidationTextBox',
                     'name'    => 'NewEventLocation',
                     'caption' => 'Ort',
-                    'value'   => '',
+                    'value'   => $event['location'] ?? '',
                 ],
                 [
                     'type'    => 'Button',
