@@ -49,7 +49,7 @@ class SmartPartyManager extends IPSModuleStrict
         $this->RegisterAttributeString('EventData', '{}');
 
         // Variablen
-        $this->RegisterVariableBoolean('EventActive', 'Event aktiv', '~Switch', 0);
+        $this->RegisterVariableBoolean('EventActive', 'Event aktiv', '', 0);
         IPS_SetIcon($this->GetIDForIdent('EventActive'), 'Calendar');
 
         $this->RegisterVariableString('EventName', 'Event Name', '', 1);
@@ -73,7 +73,10 @@ class SmartPartyManager extends IPSModuleStrict
         $this->RegisterVariableInteger('PendingGuests', 'Ausstehend', '', 7);
         IPS_SetIcon($this->GetIDForIdent('PendingGuests'), 'Clock');
 
-        $this->RegisterVariableString('GuestListHTML', 'Gaesteliste', '~HTMLBox', 8);
+        $this->RegisterVariableString('GuestListHTML', 'Gaesteliste', '', 8);
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('GuestListHTML'), [
+            'type' => 'HTML',
+        ]);
 
         // Timer für periodische RSVP-Prüfung
         $this->RegisterTimer('RSVPCheckTimer', 0, 'SPM_CheckRSVP($_IPS[\'TARGET\']);');
