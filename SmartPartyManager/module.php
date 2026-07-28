@@ -491,18 +491,24 @@ class SmartPartyManager extends IPSModuleStrict
             $response = $responseByEmail[$email];
             $answered = false;
             $isYes    = false;
+            $details  = [];
 
             // Erste Antwort aus dem Form auswerten
             $answers = $response['answers'] ?? [];
             foreach ($answers as $answer) {
                 $textAnswers = $answer['textAnswers']['answers'] ?? [];
                 foreach ($textAnswers as $ta) {
-                    $value = $ta['value'] ?? '';
+                    $value = trim($ta['value'] ?? '');
                     if (!empty($value)) {
                         $answered = true;
                         // Pruefen ob "Ja" enthalten
                         if (stripos($value, $yesValue) !== false) {
                             $isYes = true;
+                        } else {
+                            // Andere Antworten sammeln, die nicht der Name oder die Mail sind
+                            if (strtolower($value) !== strtolower($email) && strtolower($value) !== strtolower($guest['name'])) {
+                                $details[] = $value;
+                            }
                         }
                     }
                 }
@@ -511,6 +517,7 @@ class SmartPartyManager extends IPSModuleStrict
             if ($answered) {
                 $guest['status']      = $isYes ? 'confirmed' : 'declined';
                 $guest['respondedAt'] = date('d.m.Y H:i');
+                $guest['details']     = implode(', ', $details);
                 $updated++;
                 $this->SendDebug('CheckRSVP', $guest['name'] . ' → ' . $guest['status'], 0);
             }
@@ -556,8 +563,8 @@ class SmartPartyManager extends IPSModuleStrict
             return false;
         }
 
-        $subject = $this->FillTemplate($this->ReadPropertyString('EmailSubject'), $guest, $event);
-        $body    = $this->FillTemplate($this->ReadPropertyString('EmailTemplate'), $guest, $event);
+        $subject = $this->FillTemplate($this->ReadPropertyString('EmailSubject'), $guest, $event, false);
+        $body    = $this->FillTemplate($this->ReadPropertyString('EmailTemplate'), $guest, $event, true);
 
         if ($isReminder) {
             $subject = '⏰ Erinnerung: ' . $subject;
@@ -662,15 +669,17 @@ class SmartPartyManager extends IPSModuleStrict
     // Private — Hilfsfunktionen
     // =========================================================================
 
-    private function FillTemplate(string $template, array $guest, array $event): string
+    private function FillTemplate(string $template, array $guest, array $event, bool $isHtml = false): string
     {
         $formUrl  = $event['formUrl'] ?? '';
         $emailEnc = urlencode($guest['email'] ?? '');
         $rsvpLink = $formUrl . "?usp=pp_url&entry.123456789={$emailEnc}";
+        
+        $rsvpDisplay = $isHtml ? '<a href="' . $rsvpLink . '">' . htmlspecialchars($rsvpLink) . '</a>' : $rsvpLink;
 
         $replace = [
             '{GuestName}'     => $guest['name'] ?? '',
-            '{RSVPLink}'      => $rsvpLink,
+            '{RSVPLink}'      => $rsvpDisplay,
         ];
 
         return str_replace(array_keys($replace), array_values($replace), $template);
@@ -759,13 +768,16 @@ class SmartPartyManager extends IPSModuleStrict
             $respondedAt = $g['respondedAt'] ? htmlspecialchars($g['respondedAt']) : '—';
             $name        = htmlspecialchars($g['name']);
             $contact     = htmlspecialchars($g['email'] ?: $g['phone'] ?: '—');
+            
+            $detailsText = !empty($g['details']) ? htmlspecialchars($g['details']) : '';
+            $detailsHtml = $detailsText ? "<br><span style=\"font-size:0.85em;color:#777;\">Zusatzinfos: {$detailsText}</span>" : '';
 
-            $rows .= "<tr style=\"background:{$statusColor};\">
-                <td style=\"padding:8px 12px;\">{$statusIcon} <strong>{$name}</strong></td>
-                <td style=\"padding:8px 12px;\">{$contact}</td>
-                <td style=\"padding:8px 12px;\">{$channelIcon}</td>
-                <td style=\"padding:8px 12px;\">{$statusText}</td>
-                <td style=\"padding:8px 12px;font-size:0.85em;color:#555;\">Einladung: {$invitedAt}<br>Antwort: {$respondedAt}</td>
+            $rows .= "<tr style=\"background:{$statusColor};border-bottom:1px solid #eee;\">
+                <td style=\"padding:12px;\">{$statusIcon} <strong style=\"font-size:1.05em;\">{$name}</strong>{$detailsHtml}</td>
+                <td style=\"padding:12px;\">{$contact}</td>
+                <td style=\"padding:12px;\">{$channelIcon}</td>
+                <td style=\"padding:12px;\">{$statusText}</td>
+                <td style=\"padding:12px;font-size:0.85em;color:#555;\">Einladung: {$invitedAt}<br>Antwort: {$respondedAt}</td>
             </tr>";
         }
 
