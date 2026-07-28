@@ -305,6 +305,13 @@ class SmartPartyManager extends IPSModuleStrict
         $formUrl = $this->ReadPropertyString('RSVPFormURL');
         $formId  = $this->ExtractFormId($formUrl);
 
+        if (empty($formId)) {
+            echo 'Fehler: Ungueltige Google Forms URL! Bitte verwende die URL aus dem Formular-EDITOR (z.B. https://docs.google.com/forms/d/1abc.../edit) - NICHT den "Senden"-Link (1FAIp...). Die API benoetigt die Editor-ID.';
+            return;
+        }
+
+        $cleanViewformUrl = 'https://docs.google.com/forms/d/' . $formId . '/viewform';
+
         $eventData = [
             'event' => [
                 'name'     => $name,
@@ -312,7 +319,7 @@ class SmartPartyManager extends IPSModuleStrict
                 'time'     => $time,
                 'location' => $location,
                 'formId'   => $formId,
-                'formUrl'  => $formUrl,
+                'formUrl'  => $cleanViewformUrl,
             ],
             'guests' => [],
         ];
@@ -478,6 +485,23 @@ class SmartPartyManager extends IPSModuleStrict
         $eventData = $this->GetEventData();
         $guests    = $eventData['guests'] ?? [];
         $formId    = $eventData['event']['formId'] ?? '';
+
+        // Falls noch die falsche Responder-ID (1FAIp...) im Event gespeichert ist
+        if (str_starts_with($formId, '1FAIp')) {
+            // Versuche aktuelle Form URL aus den Settings zu nutzen
+            $formUrl = $this->ReadPropertyString('RSVPFormURL');
+            $newFormId = $this->ExtractFormId($formUrl);
+            
+            if (empty($newFormId)) {
+                echo "Fehler: Das Event verwendet einen ungueltigen Form-Link (1FAIp...). \nBitte in der Konfiguration unter 'Google Form URL' den Link aus dem Formular-EDITOR eintragen (z.B. https://docs.google.com/forms/d/1abc.../edit) und dann das Event neu erstellen oder RSVP erneut pruefen.";
+                return;
+            }
+            // Update the formId in the event data so it works next time
+            $formId = $newFormId;
+            $eventData['event']['formId'] = $newFormId;
+            $eventData['event']['formUrl'] = 'https://docs.google.com/forms/d/' . $formId . '/viewform';
+            $this->WriteAttributeString('EventData', json_encode($eventData, JSON_UNESCAPED_UNICODE));
+        }
 
         if (empty($formId) || empty($guests)) {
             $this->SendDebug('CheckRSVP', 'No formId or no guests', 0);
@@ -709,13 +733,23 @@ class SmartPartyManager extends IPSModuleStrict
 
     private function ExtractFormId(string $formUrl): string
     {
-        // https://docs.google.com/forms/d/e/1FAIpQLSe.../viewform → ID extrahieren
-        if (preg_match('/\/forms\/d\/e\/([^\/]+)/', $formUrl, $m)) {
+        // 1FAIp... Responder URL ist FALSCH fuer die API
+        if (str_contains($formUrl, '/forms/d/e/1FAIp')) {
+            return '';
+        }
+
+        if (preg_match('/\/forms\/d\/([a-zA-Z0-9_-]+)/', $formUrl, $m)) {
+            if ($m[1] === 'e') {
+                return '';
+            }
             return $m[1];
         }
-        if (preg_match('/\/forms\/d\/([^\/]+)/', $formUrl, $m)) {
-            return $m[1];
+
+        // Fallback: Falls der User direkt die ID eingetragen hat
+        if (preg_match('/^[a-zA-Z0-9_-]{20,}$/', $formUrl)) {
+            return $formUrl;
         }
+
         return '';
     }
 
