@@ -630,6 +630,7 @@ class SmartPartyManager extends IPSModuleStrict
         $checkUrl = $wahaUrl . '/api/contacts/check-exists?phone=' . urlencode($phone) . '&session=' . urlencode($session);
         $chk = curl_init($checkUrl);
         curl_setopt($chk, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($chk, CURLOPT_TIMEOUT, 15);
         curl_setopt($chk, CURLOPT_HTTPHEADER, !empty($wahaKey) ? ['X-Api-Key: ' . $wahaKey, 'Accept: application/json'] : ['Accept: application/json']);
         $chkResponse = curl_exec($chk);
         $chkStatus = curl_getinfo($chk, CURLINFO_HTTP_CODE);

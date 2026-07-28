@@ -33,7 +33,9 @@ trait SmartLog_Trait
 
         $slogInstances = @IPS_GetInstanceListByModuleID('{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}');
         if (is_array($slogInstances) && count($slogInstances) > 0) {
-            @SLOG_Log($slogInstances[0], $level, $source, $message, $details);
+            if (function_exists('SLOG_Log')) {
+                SLOG_Log($slogInstances[0], $level, $source, $message, $details);
+            }
         } else {
             IPS_LogMessage('SmartVillaKunterbunt', $source . ': ' . $message);
         }
