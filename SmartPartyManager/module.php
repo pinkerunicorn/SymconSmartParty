@@ -622,8 +622,9 @@ class SmartPartyManager extends IPSModuleStrict
             $body    = "Hallo {$guest['name']}, wir warten noch auf deine Rückmeldung!\n\n" . $body;
         }
 
-        // Symcon SMTP sendet standardmaessig HTML -> Newlines in <br> umwandeln
-        $bodyHtml = nl2br($body);
+        // Symcon 7.0+ sendet HTML nur, wenn <html> und </html> vorkommen.
+        // Wir wandeln Zeilenumbrueche in <br> um und packen es in ein HTML-Geruest.
+        $bodyHtml = "<html><body>\n" . nl2br($body) . "\n</body></html>";
 
         try {
             SMTP_SendMailEx($smtpId, $guest['email'], $subject, $bodyHtml);
