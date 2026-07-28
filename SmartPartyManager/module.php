@@ -600,12 +600,20 @@ class SmartPartyManager extends IPSModuleStrict
         $chatId = $phone . '@c.us';
 
         // Prüfen ob Nummer auf WhatsApp existiert
-        $checkUrl = $wahaUrl . '/api/' . $session . '/contacts/check-exists?phone=' . $phone;
+        $checkUrl = $wahaUrl . '/api/contacts/check-exists?phone=' . urlencode($phone) . '&session=' . urlencode($session);
         $chk = curl_init($checkUrl);
         curl_setopt($chk, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($chk, CURLOPT_HTTPHEADER, !empty($wahaKey) ? ['X-Api-Key: ' . $wahaKey] : []);
-        $chkResult = json_decode(curl_exec($chk), true);
+        curl_setopt($chk, CURLOPT_HTTPHEADER, !empty($wahaKey) ? ['X-Api-Key: ' . $wahaKey, 'Accept: application/json'] : ['Accept: application/json']);
+        $chkResponse = curl_exec($chk);
+        $chkStatus = curl_getinfo($chk, CURLINFO_HTTP_CODE);
         curl_close($chk);
+
+        $chkResult = json_decode($chkResponse, true);
+
+        if ($chkStatus !== 200) {
+            $this->SendDebug('SendWhatsApp', "WAHA check-exists API Fehler (HTTP $chkStatus): " . $chkResponse, 0);
+            return false;
+        }
 
         if (!($chkResult['numberExists'] ?? false)) {
             $this->SendDebug('SendWhatsApp', 'Nummer nicht auf WhatsApp: ' . $phone, 0);
