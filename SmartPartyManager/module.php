@@ -189,18 +189,20 @@ class SmartPartyManager extends IPSModuleStrict
                     'caption' => 'E-Mail Text (Platzhalter: {GuestName} {EventName} {EventDate} {EventTime} {EventLocation} {RSVPLink} {HostName})',
                 ],
                 [
-                    'type'    => 'ValidationTextBox',
-                    'name'    => 'EmailTemplate',
-                    'caption' => 'E-Mail Template',
+                    'type'      => 'ValidationTextBox',
+                    'name'      => 'EmailTemplate',
+                    'caption'   => 'E-Mail Template',
+                    'multiline' => true,
                 ],
                 [
                     'type'    => 'Label',
                     'caption' => 'WhatsApp Text (gleiche Platzhalter)',
                 ],
                 [
-                    'type'    => 'ValidationTextBox',
-                    'name'    => 'WhatsAppTemplate',
-                    'caption' => 'WhatsApp Template',
+                    'type'      => 'ValidationTextBox',
+                    'name'      => 'WhatsAppTemplate',
+                    'caption'   => 'WhatsApp Template',
+                    'multiline' => true,
                 ],
                 // RSVP
                 [
