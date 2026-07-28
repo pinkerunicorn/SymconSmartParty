@@ -144,16 +144,19 @@ class SmartPartyManager extends IPSModuleStrict
                 [
                     'type'    => 'ValidationTextBox',
                     'name'    => 'WAHABaseURL',
+                    'width'   => '100%',
                     'caption' => 'WAHA URL (z.B. http://192.168.1.100:3000)',
                 ],
                 [
                     'type'    => 'PasswordTextBox',
                     'name'    => 'WAHAApiKey',
+                    'width'   => '100%',
                     'caption' => 'WAHA API Key',
                 ],
                 [
                     'type'    => 'ValidationTextBox',
                     'name'    => 'WAHASession',
+                    'width'   => '100%',
                     'caption' => 'WAHA Session Name',
                 ],
                 // Gastgeber
@@ -164,11 +167,13 @@ class SmartPartyManager extends IPSModuleStrict
                 [
                     'type'    => 'ValidationTextBox',
                     'name'    => 'HostName',
+                    'width'   => '100%',
                     'caption' => 'Name des Gastgebers (für Templates)',
                 ],
                 [
                     'type'    => 'ValidationTextBox',
                     'name'    => 'EmailSubject',
+                    'width'   => '100%',
                     'caption' => 'E-Mail Betreff',
                 ],
                 [
@@ -178,6 +183,7 @@ class SmartPartyManager extends IPSModuleStrict
                 [
                     'type'      => 'ValidationTextBox',
                     'name'      => 'EmailTemplate',
+                    'width'     => '100%',
                     'caption'   => 'E-Mail Template',
                     'multiline' => true,
                 ],
@@ -188,6 +194,7 @@ class SmartPartyManager extends IPSModuleStrict
                 [
                     'type'      => 'ValidationTextBox',
                     'name'      => 'WhatsAppTemplate',
+                    'width'     => '100%',
                     'caption'   => 'WhatsApp Template',
                     'multiline' => true,
                 ],
@@ -199,11 +206,13 @@ class SmartPartyManager extends IPSModuleStrict
                 [
                     'type'    => 'ValidationTextBox',
                     'name'    => 'RSVPFormURL',
+                    'width'   => '100%',
                     'caption' => 'Google Form URL (komplette URL)',
                 ],
                 [
                     'type'    => 'ValidationTextBox',
                     'name'    => 'RSVPYesValue',
+                    'width'   => '100%',
                     'caption' => 'Text der "Ja"-Antwort im Form (z.B. "Ja, ich komme!")',
                 ],
                 [
@@ -222,24 +231,28 @@ class SmartPartyManager extends IPSModuleStrict
                 [
                     'type'    => 'ValidationTextBox',
                     'name'    => 'NewEventName',
+                    'width'   => '100%',
                     'caption' => 'Event Name (z.B. Sommerfest 2026)',
                     'value'   => $event['name'] ?? '',
                 ],
                 [
                     'type'    => 'ValidationTextBox',
                     'name'    => 'NewEventDate',
+                    'width'   => '100%',
                     'caption' => 'Datum (z.B. 15.08.2026)',
                     'value'   => $event['date'] ?? '',
                 ],
                 [
                     'type'    => 'ValidationTextBox',
                     'name'    => 'NewEventTime',
+                    'width'   => '100%',
                     'caption' => 'Uhrzeit (z.B. 16:00)',
                     'value'   => $event['time'] ?? '',
                 ],
                 [
                     'type'    => 'ValidationTextBox',
                     'name'    => 'NewEventLocation',
+                    'width'   => '100%',
                     'caption' => 'Ort',
                     'value'   => $event['location'] ?? '',
                 ],
