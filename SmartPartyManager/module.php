@@ -112,6 +112,17 @@ class SmartPartyManager extends IPSModuleStrict
         $hasEvent  = !empty($eventData['event']['name'] ?? '');
         $hasGuests = !empty($eventData['guests'] ?? []);
 
+        $gatewayId = $this->ReadPropertyInteger('GatewayInstance');
+        $webhookUrl = '';
+        if ($gatewayId > 1 && @IPS_ObjectExists($gatewayId)) {
+            $externalUrl = trim(IPS_GetProperty($gatewayId, 'SymconExternalURL'), '/');
+            if (!empty($externalUrl)) {
+                $webhookUrl = $externalUrl . '/hook/SmartPartyGateway';
+            }
+        }
+        $scriptUrl = $webhookUrl ?: 'YOUR_SYMCON_WEBHOOK_URL';
+
+
         return json_encode([
             'elements' => [
                 [
@@ -217,11 +228,24 @@ class SmartPartyManager extends IPSModuleStrict
                 [
                     'type'    => 'NumberSpinner',
                     'name'    => 'RSVPCheckInterval',
-                    'caption' => 'RSVP-Prüfintervall (Minuten)',
+                    'caption' => 'RSVP-Prüfintervall (Minuten) - Optionaler Fallback',
                     'minimum' => 5,
                     'maximum' => 1440,
                 ],
+                [
+                    'type'    => 'Label',
+                    'caption' => '── Sofortiges RSVP per Webhook (Empfohlen) ────────',
+                ],
+                [
+                    'type'    => 'Label',
+                    'caption' => 'Webhook-URL: ' . ($webhookUrl ?: 'Keine Gateway Instanz verknüpft oder SymconExternalURL leer'),
+                ],
+                [
+                    'type'    => 'Label',
+                    'caption' => "Apps Script Code for the Google Form:\nfunction onFormSubmit(e) {\n  UrlFetchApp.fetch('" . $scriptUrl . "', {method: 'post', payload: JSON.stringify(e.response.getItemResponses().map(r => ({q: r.getItem().getTitle(), a: r.getResponse()})))});\n}",
+                ],
             ],
+
             'actions' => [
                 [
                     'type'    => 'Label',

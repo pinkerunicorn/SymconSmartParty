@@ -203,6 +203,22 @@ class SmartPartyGateway extends IPSModuleStrict
 
     protected function ProcessHookData(): void
     {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $this->SendDebug('Webhook', 'POST request received, triggering RSVP check', 0);
+            
+            // Finde alle SmartPartyManager Instanzen
+            $managers = IPS_GetInstanceListByModuleID('{7B3D9F2E-1C8A-4E6D-A3B7-8C5F2D9A4E1C}');
+            foreach ($managers as $managerId) {
+                // Nur Manager ausfuehren, die auf dieses Gateway verknuepft sind
+                if (IPS_GetProperty($managerId, 'GatewayInstance') == $this->InstanceID) {
+                    @SPM_CheckRSVP($managerId);
+                }
+            }
+            
+            echo 'OK';
+            return;
+        }
+
         if (isset($_GET['code'])) {
             $this->HandleOAuthCallback($_GET['code']);
             return;
