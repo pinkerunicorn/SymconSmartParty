@@ -43,22 +43,34 @@ class SmartPartyManager extends IPSModuleStrict
         $this->RegisterAttributeString('EventData', '{}');
 
         // Variablen
-        $this->RegisterVariableBoolean('EventActive', 'Event aktiv', '', 0);
-        IPS_SetIcon($this->GetIDForIdent('EventActive'), 'Calendar');
+        $this->RegisterVariableBoolean('EventActive', 'Event aktiv', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'         => 'Calendar'
+        ], 0);
 
-        $this->RegisterVariableInteger('TotalGuests', 'Gäste gesamt', '', 4);
-        IPS_SetIcon($this->GetIDForIdent('TotalGuests'), 'Persons');
+        $this->RegisterVariableInteger('TotalGuests', 'Gäste gesamt', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'         => 'Persons'
+        ], 4);
 
-        $this->RegisterVariableInteger('ConfirmedGuests', 'Zusagen', '', 5);
-        IPS_SetIcon($this->GetIDForIdent('ConfirmedGuests'), 'Ok');
+        $this->RegisterVariableInteger('ConfirmedGuests', 'Zusagen', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'         => 'Ok'
+        ], 5);
 
-        $this->RegisterVariableInteger('DeclinedGuests', 'Absagen', '', 6);
-        IPS_SetIcon($this->GetIDForIdent('DeclinedGuests'), 'Warning');
+        $this->RegisterVariableInteger('DeclinedGuests', 'Absagen', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'         => 'Warning'
+        ], 6);
 
-        $this->RegisterVariableInteger('PendingGuests', 'Ausstehend', '', 7);
-        IPS_SetIcon($this->GetIDForIdent('PendingGuests'), 'Clock');
+        $this->RegisterVariableInteger('PendingGuests', 'Ausstehend', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'         => 'Clock'
+        ], 7);
 
-        $this->RegisterVariableString('GuestListHTML', 'Gaesteliste', '', 8);
+        $this->RegisterVariableString('GuestListHTML', 'Gaesteliste', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION
+        ], 8);
         IPS_SetVariableCustomPresentation($this->GetIDForIdent('GuestListHTML'), [
             'type' => 'HTML',
         ]);
@@ -75,6 +87,26 @@ class SmartPartyManager extends IPSModuleStrict
         $this->MaintainVariable('EventName', 'Event Name', 3, '', 1, false);
         $this->MaintainVariable('EventDate', 'Datum & Uhrzeit', 3, '', 2, false);
         $this->MaintainVariable('EventLocation', 'Ort', 3, '', 3, false);
+
+        // Custom Presentation für EventActive
+        $eventActiveOptions = json_encode([
+            ['Value' => false, 'Caption' => 'Kein Event', 'IconValue' => 'Calendar', 'IconActive' => true,
+             'ColorActive' => false, 'ColorDisplay' => -1, 'ContentColorActive' => false,
+             'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => -1],
+            ['Value' => true, 'Caption' => 'Event aktiv', 'IconValue' => 'Calendar', 'IconActive' => true,
+             'ColorActive' => true, 'ColorDisplay' => 0x00CC00, 'ContentColorActive' => false,
+             'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x00CC00]
+        ]);
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('EventActive'), [
+            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+            'ICON' => 'Calendar',
+            'COLOR' => -1,
+            'CONTENT_COLOR' => -1,
+            'DISPLAY_TYPE' => 0,
+            'PREVIEW_STYLE' => 1,
+            'SHOW_PREVIEW' => true,
+            'OPTIONS' => $eventActiveOptions
+        ]);
 
         // Referenzen registrieren
         foreach ($this->GetReferenceList() as $refID) {
