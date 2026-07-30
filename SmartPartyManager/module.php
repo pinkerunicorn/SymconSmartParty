@@ -42,11 +42,15 @@ class SmartPartyManager extends IPSModuleStrict
         // Event-Daten (JSON) — persistent gespeichert
         $this->RegisterAttributeString('EventData', '{}');
 
-        // Variablen
         $this->RegisterVariableBoolean('EventActive', 'Event aktiv', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON'         => 'Calendar'
         ], 0);
+
+        $this->RegisterVariableBoolean('PartyActive', '🎉 Party-Modus', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_SWITCH,
+            'ICON'         => 'Speaker'
+        ], 1);
 
         $this->RegisterVariableInteger('TotalGuests', 'Gäste gesamt', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
@@ -131,6 +135,18 @@ class SmartPartyManager extends IPSModuleStrict
 
         // Gästeliste aktualisieren
         $this->UpdateDisplayVariables();
+
+        $this->EnableAction('PartyActive');
+    }
+
+    public function RequestAction(string $Ident, mixed $Value): void
+    {
+        if ($Ident === 'PartyActive') {
+            $this->SetValue($Ident, $Value);
+            if (function_exists('SHC_SetActivityMode')) {
+                SHC_SetActivityMode($Value ? 3 : 0);
+            }
+        }
     }
 
     // =========================================================================
