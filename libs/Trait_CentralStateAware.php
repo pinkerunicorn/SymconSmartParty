@@ -57,18 +57,24 @@ if (!trait_exists('CentralStateAware_Trait')) {
                     $value = GetValue($varID);
                     $this->SetBuffer('CSA_' . $ident, serialize($value));
                     
-                    // Automatisch einen Link auf die Variable erstellen, damit sie im Modul sichtbar ist
+                    // Lösche eventuell alte Links aus der Vorversion
                     $linkIdent = 'CSA_Link_' . $ident;
                     $linkID = @IPS_GetObjectIDByIdent($linkIdent, $this->InstanceID);
-                    if ($linkID === false) {
-                        $linkID = IPS_CreateLink();
-                        IPS_SetParent($linkID, $this->InstanceID);
-                        IPS_SetIdent($linkID, $linkIdent);
-                        IPS_SetLinkTargetID($linkID, $varID);
-                        IPS_SetName($linkID, IPS_GetName($varID));
-                        IPS_SetIcon($linkID, IPS_GetIcon($varID));
-                        IPS_SetPosition($linkID, -100); // Weit nach oben sortieren
+                    if ($linkID !== false) {
+                        IPS_DeleteLink($linkID);
                     }
+                    
+                    // Erstelle eine ECHTE Variable im Modul als Mirror ("Beweis" dass das Modul es verstanden hat)
+                    $mirrorIdent = 'CSA_State_' . $ident;
+                    $this->MaintainVariable($mirrorIdent, IPS_GetName($varID), 1, '', -100, true);
+                    
+                    $varObj = IPS_GetVariable($varID);
+                    $profile = $varObj['VariableCustomProfile'] !== '' ? $varObj['VariableCustomProfile'] : $varObj['VariableProfile'];
+                    IPS_SetVariableCustomProfile($this->GetIDForIdent($mirrorIdent), $profile);
+                    IPS_SetIcon($this->GetIDForIdent($mirrorIdent), IPS_GetIcon($varID));
+                    
+                    // Setze den initialen Wert
+                    $this->SetValue($mirrorIdent, $value);
                 }
             }
 
@@ -94,6 +100,7 @@ if (!trait_exists('CentralStateAware_Trait')) {
                         $newValue = $Data[0];
                         
                         $this->SetBuffer('CSA_' . $ident, serialize($newValue));
+                        $this->SetValue('CSA_State_' . $ident, $newValue);
                         $this->OnCentralStateChanged($ident, $newValue);
                         return true;
                     }
