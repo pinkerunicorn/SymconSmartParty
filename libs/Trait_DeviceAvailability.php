@@ -45,7 +45,7 @@ if (!trait_exists('DeviceAvailability_Trait')) {
          */
         private function DA_RegisterAvailability(int $position = 900): void
         {
-            $this->RegisterVariableBoolean('DeviceAvailable', 'Online', [
+            $this->RegisterVariableBoolean('DeviceAvailable', 'Gerätestatus', [
                 'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
                 'ICON'         => 'Network'
             ], $position);
