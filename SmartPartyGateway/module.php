@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../libs/Trait_SmartLog.php';
 require_once __DIR__ . '/../libs/Trait_SmartHttp.php';
+require_once __DIR__ . '/../libs/Trait_DeviceAvailability.php';
 
 class SmartPartyGateway extends IPSModuleStrict
 {
     use SmartLog_Trait;
     use SmartHttp_Trait;
+    use DeviceAvailability_Trait;
 
     // Google OAuth2 / API Endpoints
     private const GOOGLE_AUTH_URL   = 'https://accounts.google.com/o/oauth2/v2/auth';
@@ -28,6 +30,7 @@ class SmartPartyGateway extends IPSModuleStrict
     public function Create(): void
     {
         parent::Create();
+        $this->DA_RegisterAvailability(900);
 
         // Google OAuth2
         $this->RegisterPropertyString('GoogleClientID', '');
@@ -57,8 +60,25 @@ class SmartPartyGateway extends IPSModuleStrict
     {
         parent::ApplyChanges();
 
+        $clientId = $this->ReadPropertyString('GoogleClientID');
+        if (empty($clientId)) {
+            $this->SetStatus(104);
+            return;
+        }
+        $this->SetStatus(102);
+
         $this->RegisterHook('/hook/SmartPartyGateway');
         $this->UpdateAuthStatusVariable();
+        $this->DA_ApplyPresentation();
+    }
+
+    public function RequestAction(string $Ident, mixed $Value): void
+    {
+        switch ($Ident) {
+            case 'DA_Watchdog':
+                $this->DA_HandleWatchdog();
+                break;
+        }
     }
 
     // =========================================================================
@@ -73,6 +93,33 @@ class SmartPartyGateway extends IPSModuleStrict
             : '❌ Noch nicht autorisiert';
 
         return json_encode([
+            'status' => [
+                [
+                    'code'    => 104,
+                    'icon'    => 'inactive',
+                    'caption' => 'Instanz inaktiv (Konfiguration unvollständig)'
+                ],
+                [
+                    'code'    => 201,
+                    'icon'    => 'active',
+                    'caption' => 'Device available'
+                ],
+                [
+                    'code'    => 202,
+                    'icon'    => 'error',
+                    'caption' => 'Device unavailable'
+                ],
+                [
+                    'code'    => 203,
+                    'icon'    => 'error',
+                    'caption' => 'Device error'
+                ],
+                [
+                    'code'    => 204,
+                    'icon'    => 'error',
+                    'caption' => 'Device timeout'
+                ]
+            ],
             'elements' => [
                 [
                     'type'    => 'Label',
@@ -481,9 +528,11 @@ class SmartPartyGateway extends IPSModuleStrict
         $responseArray = $this->HttpRequest($url, 'GET', $headers, null, 15, true);
 
         if ($responseArray === null) {
+            $this->DA_SetAvailable(false, 'Google API error');
             return false;
         }
 
+        $this->DA_SetAvailable(true);
         return $responseArray;
     }
 

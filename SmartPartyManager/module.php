@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../libs/Trait_SmartLog.php';
 require_once __DIR__ . '/../libs/Trait_SmartHttp.php';
+require_once __DIR__ . '/../libs/Trait_DeviceAvailability.php';
 
 class SmartPartyManager extends IPSModuleStrict
 {
     use SmartLog_Trait;
     use SmartHttp_Trait;
+    use DeviceAvailability_Trait;
 
     // =========================================================================
     // Lifecycle
@@ -17,6 +19,7 @@ class SmartPartyManager extends IPSModuleStrict
     public function Create(): void
     {
         parent::Create();
+        $this->DA_RegisterAvailability(900);
 
         // Gateway & SMTP Verknüpfung
         $this->RegisterPropertyInteger('GatewayInstance', 0);
@@ -89,6 +92,14 @@ class SmartPartyManager extends IPSModuleStrict
     {
         parent::ApplyChanges();
 
+        $gatewayId = $this->ReadPropertyInteger('GatewayInstance');
+        if (empty($gatewayId)) {
+            $this->SetStatus(104);
+            $this->DA_SetAvailable(false, 'Kein Gateway konfiguriert');
+            return;
+        }
+        $this->SetStatus(102);
+
         // Alte Variablen aufräumen falls vorhanden
         $this->MaintainVariable('EventName', 'Event Name', 3, '', 1, false);
         $this->MaintainVariable('EventDate', 'Datum & Uhrzeit', 3, '', 2, false);
@@ -139,15 +150,23 @@ class SmartPartyManager extends IPSModuleStrict
         $this->UpdateDisplayVariables();
 
         $this->EnableAction('PartyActive');
+
+        $this->DA_SetAvailable(true);
+        $this->DA_ApplyPresentation();
     }
 
     public function RequestAction(string $Ident, mixed $Value): void
     {
-        if ($Ident === 'PartyActive') {
-            $this->SetValue($Ident, $Value);
-            if (function_exists('SHC_SetActivityMode')) {
-                SHC_SetActivityMode($Value ? 3 : 0);
-            }
+        switch ($Ident) {
+            case 'PartyActive':
+                $this->SetValue($Ident, $Value);
+                if (function_exists('SHC_SetActivityMode')) {
+                    SHC_SetActivityMode($Value ? 3 : 0);
+                }
+                break;
+            case 'DA_Watchdog':
+                $this->DA_HandleWatchdog();
+                break;
         }
     }
 
@@ -174,6 +193,33 @@ class SmartPartyManager extends IPSModuleStrict
 
 
         return json_encode([
+            'status' => [
+                [
+                    'code'    => 104,
+                    'icon'    => 'inactive',
+                    'caption' => 'Instanz inaktiv (Konfiguration unvollständig)'
+                ],
+                [
+                    'code'    => 201,
+                    'icon'    => 'active',
+                    'caption' => 'Device available'
+                ],
+                [
+                    'code'    => 202,
+                    'icon'    => 'error',
+                    'caption' => 'Device unavailable'
+                ],
+                [
+                    'code'    => 203,
+                    'icon'    => 'error',
+                    'caption' => 'Device error'
+                ],
+                [
+                    'code'    => 204,
+                    'icon'    => 'error',
+                    'caption' => 'Device timeout'
+                ]
+            ],
             'elements' => [
                 [
                     'type'    => 'Label',
