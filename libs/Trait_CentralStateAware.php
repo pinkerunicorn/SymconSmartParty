@@ -71,7 +71,7 @@ if (!trait_exists('CentralStateAware_Trait')) {
                     $varObj = IPS_GetVariable($varID);
                     $profile = $varObj['VariableCustomProfile'] !== '' ? $varObj['VariableCustomProfile'] : $varObj['VariableProfile'];
                     IPS_SetVariableCustomProfile($this->GetIDForIdent($mirrorIdent), $profile);
-                    IPS_SetIcon($this->GetIDForIdent($mirrorIdent), IPS_GetIcon($varID));
+                    IPS_SetIcon($this->GetIDForIdent($mirrorIdent), IPS_GetObject($varID)['ObjectIcon']);
                     
                     // Setze den initialen Wert
                     $this->SetValue($mirrorIdent, $value);
