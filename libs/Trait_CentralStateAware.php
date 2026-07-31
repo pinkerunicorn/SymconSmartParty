@@ -56,6 +56,19 @@ if (!trait_exists('CentralStateAware_Trait')) {
                     // Cache current value
                     $value = GetValue($varID);
                     $this->SetBuffer('CSA_' . $ident, serialize($value));
+                    
+                    // Automatisch einen Link auf die Variable erstellen, damit sie im Modul sichtbar ist
+                    $linkIdent = 'CSA_Link_' . $ident;
+                    $linkID = @IPS_GetObjectIDByIdent($linkIdent, $this->InstanceID);
+                    if ($linkID === false) {
+                        $linkID = IPS_CreateLink();
+                        IPS_SetParent($linkID, $this->InstanceID);
+                        IPS_SetIdent($linkID, $linkIdent);
+                        IPS_SetLinkTargetID($linkID, $varID);
+                        IPS_SetName($linkID, IPS_GetName($varID));
+                        IPS_SetIcon($linkID, IPS_GetIcon($varID));
+                        IPS_SetPosition($linkID, -100); // Weit nach oben sortieren
+                    }
                 }
             }
 
