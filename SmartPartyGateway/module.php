@@ -3,10 +3,12 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../libs/Trait_SmartLog.php';
+require_once __DIR__ . '/../libs/Trait_SmartHttp.php';
 
 class SmartPartyGateway extends IPSModuleStrict
 {
     use SmartLog_Trait;
+    use SmartHttp_Trait;
 
     // Google OAuth2 / API Endpoints
     private const GOOGLE_AUTH_URL   = 'https://accounts.google.com/o/oauth2/v2/auth';
@@ -248,28 +250,18 @@ class SmartPartyGateway extends IPSModuleStrict
             'grant_type'    => 'authorization_code',
         ]);
 
-        $ch = curl_init(self::GOOGLE_TOKEN_URL);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/x-www-form-urlencoded']);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
+        $headers = ['Content-Type: application/x-www-form-urlencoded'];
+        $tokenData = $this->HttpRequest(self::GOOGLE_TOKEN_URL, 'POST', $headers, $postData, 15, true);
 
-        if ($httpCode !== 200 || $response === false) {
-            $this->SendDebug('OAuth', 'Token exchange failed HTTP ' . $httpCode . ': ' . $response, 0);
+        if ($tokenData === null) {
+            $this->SendDebug('OAuth', 'Token exchange failed', 0);
             echo '<h2>❌ Token-Austausch fehlgeschlagen</h2>';
-            echo '<p><strong>Details (HTTP ' . $httpCode . '):</strong> ' . htmlspecialchars((string)$response) . '</p>';
             echo '<p>Bitte prüfe Client-ID, Client-Secret und die Autorisierte Weiterleitungs-URI in der Google Cloud Console.</p>';
             return;
         }
 
-        $tokenData = json_decode($response, true);
-
         if (!isset($tokenData['access_token'])) {
-            $this->SendDebug('OAuth', 'No access token in response: ' . $response, 0);
+            $this->SendDebug('OAuth', 'No access token in response', 0);
             echo '<h2>❌ Kein Access Token erhalten</h2>';
             return;
         }
@@ -314,12 +306,11 @@ class SmartPartyGateway extends IPSModuleStrict
 
         // Schritt 1: Alle Kontaktgruppen abrufen
         $url = self::GOOGLE_PEOPLE_BASE . '/contactGroups?pageSize=200';
-        $raw = $this->GoogleApiGet($url, $token);
-        if ($raw === false) {
+        $groupsData = $this->GoogleApiGet($url, $token);
+        if ($groupsData === false) {
             return [];
         }
 
-        $groupsData  = json_decode($raw, true);
         $targetGroups = []; // resourceName => channel
 
         foreach ($groupsData['contactGroups'] ?? [] as $group) {
@@ -345,12 +336,11 @@ class SmartPartyGateway extends IPSModuleStrict
 
         foreach ($targetGroups as $groupResourceName => $channel) {
             $url = self::GOOGLE_PEOPLE_BASE . '/' . $groupResourceName . '?maxMembers=200';
-            $raw = $this->GoogleApiGet($url, $token);
-            if ($raw === false) {
+            $groupInfo = $this->GoogleApiGet($url, $token);
+            if ($groupInfo === false) {
                 continue;
             }
 
-            $groupInfo = json_decode($raw, true);
             foreach ($groupInfo['memberResourceNames'] ?? [] as $memberRN) {
                 if (!isset($guestMap[$memberRN])) {
                     $guestMap[$memberRN] = $channel;
@@ -378,12 +368,10 @@ class SmartPartyGateway extends IPSModuleStrict
             $paramStr .= 'personFields=names%2CemailAddresses%2CphoneNumbers';
 
             $url = self::GOOGLE_PEOPLE_BASE . '/people:batchGet?' . $paramStr;
-            $raw = $this->GoogleApiGet($url, $token);
-            if ($raw === false) {
+            $batch = $this->GoogleApiGet($url, $token);
+            if ($batch === false) {
                 continue;
             }
-
-            $batch = json_decode($raw, true);
 
             foreach ($batch['responses'] ?? [] as $response) {
                 $person = $response['person'] ?? null;
@@ -427,12 +415,11 @@ class SmartPartyGateway extends IPSModuleStrict
         }
 
         $url = self::GOOGLE_FORMS_BASE . '/forms/' . $formId . '/responses';
-        $raw = $this->GoogleApiGet($url, $token);
-        if ($raw === false) {
+        $data = $this->GoogleApiGet($url, $token);
+        if ($data === false) {
             return [];
         }
 
-        $data = json_decode($raw, true);
         return $data['responses'] ?? [];
     }
 
@@ -467,23 +454,15 @@ class SmartPartyGateway extends IPSModuleStrict
             'grant_type'    => 'refresh_token',
         ]);
 
-        $ch = curl_init(self::GOOGLE_TOKEN_URL);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/x-www-form-urlencoded']);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
+        $headers = ['Content-Type: application/x-www-form-urlencoded'];
+        $tokenData = $this->HttpRequest(self::GOOGLE_TOKEN_URL, 'POST', $headers, $postData, 15, true);
 
-        if ($httpCode !== 200 || $response === false) {
-            $this->SendDebug('GetAccessToken', 'Refresh failed HTTP ' . $httpCode, 0);
+        if ($tokenData === null) {
+            $this->SendDebug('GetAccessToken', 'Refresh failed', 0);
             $this->SetValue('AuthStatus', 'Token-Refresh fehlgeschlagen - Bitte neu autorisieren');
             return '';
         }
 
-        $tokenData = json_decode($response, true);
         $newToken  = $tokenData['access_token'] ?? '';
         $expiresIn = (int) ($tokenData['expires_in'] ?? 3600);
 
@@ -493,25 +472,19 @@ class SmartPartyGateway extends IPSModuleStrict
         return $newToken;
     }
 
-    private function GoogleApiGet(string $url, string $token): string|false
+    private function GoogleApiGet(string $url, string $token): array|false
     {
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        $headers = [
             'Authorization: Bearer ' . $token,
             'Accept: application/json',
-        ]);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
+        ];
+        $responseArray = $this->HttpRequest($url, 'GET', $headers, null, 15, true);
 
-        if ($response === false || $httpCode !== 200) {
-            $this->SendDebug('GoogleApiGet', 'HTTP ' . $httpCode . ' — URL: ' . $url . ' — Response: ' . $response, 0);
+        if ($responseArray === null) {
             return false;
         }
 
-        return $response;
+        return $responseArray;
     }
 
     /**

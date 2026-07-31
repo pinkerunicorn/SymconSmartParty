@@ -3,10 +3,12 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../libs/Trait_SmartLog.php';
+require_once __DIR__ . '/../libs/Trait_SmartHttp.php';
 
 class SmartPartyManager extends IPSModuleStrict
 {
     use SmartLog_Trait;
+    use SmartHttp_Trait;
 
     // =========================================================================
     // Lifecycle
@@ -700,18 +702,12 @@ class SmartPartyManager extends IPSModuleStrict
 
         // Prüfen ob Nummer auf WhatsApp existiert
         $checkUrl = $wahaUrl . '/api/contacts/check-exists?phone=' . urlencode($phone) . '&session=' . urlencode($session);
-        $chk = curl_init($checkUrl);
-        curl_setopt($chk, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($chk, CURLOPT_TIMEOUT, 15);
-        curl_setopt($chk, CURLOPT_HTTPHEADER, !empty($wahaKey) ? ['X-Api-Key: ' . $wahaKey, 'Accept: application/json'] : ['Accept: application/json']);
-        $chkResponse = curl_exec($chk);
-        $chkStatus = curl_getinfo($chk, CURLINFO_HTTP_CODE);
-        curl_close($chk);
+        $headers = !empty($wahaKey) ? ['X-Api-Key: ' . $wahaKey, 'Accept: application/json'] : ['Accept: application/json'];
+        
+        $chkResult = $this->HttpRequest($checkUrl, 'GET', $headers, null, 15, true);
 
-        $chkResult = json_decode($chkResponse, true);
-
-        if ($chkStatus !== 200) {
-            $this->SendDebug('SendWhatsApp', "WAHA check-exists API Fehler (HTTP $chkStatus): " . $chkResponse, 0);
+        if ($chkResult === null) {
+            $this->SendDebug('SendWhatsApp', "WAHA check-exists API Fehler", 0);
             return false;
         }
 
@@ -731,33 +727,24 @@ class SmartPartyManager extends IPSModuleStrict
             $text = "⏰ Erinnerung: Wir warten noch auf deine Rückmeldung!\n\n" . $text;
         }
 
-        $payload = json_encode([
+        $payloadArray = [
             'session' => $session,
             'chatId'  => $chatId,
             'text'    => $text,
-        ]);
+        ];
 
-        $headers = ['Content-Type: application/json'];
+        $headers = [];
         if (!empty($wahaKey)) {
             $headers[] = 'X-Api-Key: ' . $wahaKey;
         }
 
-        $ch = curl_init($wahaUrl . '/api/sendText');
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
+        $response = $this->HttpRequest($wahaUrl . '/api/sendText', 'POST', $headers, $payloadArray, 10, false);
 
-        if ($httpCode === 200 || $httpCode === 201) {
+        if ($response !== null) {
             $this->SendDebug('SendWhatsApp', 'Sent to: ' . $phone, 0);
             return true;
         }
 
-        $this->SendDebug('SendWhatsApp', 'Error HTTP ' . $httpCode . ': ' . $response, 0);
         return false;
     }
 
