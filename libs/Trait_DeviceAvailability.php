@@ -164,6 +164,11 @@ if (!trait_exists('DeviceAvailability_Trait')) {
                 return;
             }
 
+            // Sicherstellen dass der Variablenname immer korrekt ist (Migration)
+            if (IPS_GetName($varID) !== 'Gerätestatus') {
+                IPS_SetName($varID, 'Gerätestatus');
+            }
+
             $options = json_encode([
                 [
                     'Value'               => false,
