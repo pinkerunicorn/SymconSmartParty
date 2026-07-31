@@ -51,9 +51,8 @@ if (!trait_exists('DeviceAvailability_Trait')) {
             ], $position);
 
             // Property für Alarm-Priorität (0=Low, 1=Medium, 2=High, -1=kein Alarm)
-            if (!IPS_PropertyExists($this->InstanceID, 'AvailabilityAlarmPriority')) {
-                $this->RegisterPropertyInteger('AvailabilityAlarmPriority', 1);
-            }
+            // RegisterPropertyInteger ist idempotent in Symcon – kein Existenz-Check nötig
+            $this->RegisterPropertyInteger('AvailabilityAlarmPriority', 1);
         }
 
         /**
