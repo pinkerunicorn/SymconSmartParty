@@ -53,6 +53,11 @@ if (!trait_exists('DeviceAvailability_Trait')) {
             // Property für Alarm-Priorität (0=Low, 1=Medium, 2=High, -1=kein Alarm)
             // RegisterPropertyInteger ist idempotent in Symcon – kein Existenz-Check nötig
             $this->RegisterPropertyInteger('AvailabilityAlarmPriority', 1);
+
+            // Set initial state to true (Online) on creation so newly created variables don't falsely trigger offline alarms
+            if ($this->GetValue('DeviceAvailable') === false && time() - IPS_GetVariable($this->GetIDForIdent('DeviceAvailable'))['VariableUpdated'] > 31536000) {
+                $this->SetValue('DeviceAvailable', true);
+            }
         }
 
         /**
