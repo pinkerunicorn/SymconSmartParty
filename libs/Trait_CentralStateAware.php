@@ -33,7 +33,7 @@ if (!trait_exists('CentralStateAware_Trait')) {
                 $oldMap = json_decode($oldMapStr, true);
                 if (is_array($oldMap)) {
                     foreach ($oldMap as $varID => $ident) {
-                        $this->UnregisterMessage((int)$varID, 10603); // VM_UPDATE = 10603
+                        $this->UnregisterMessage((int)$varID, VM_UPDATE);
                     }
                 }
             }
@@ -50,7 +50,7 @@ if (!trait_exists('CentralStateAware_Trait')) {
             foreach ($stateNames as $ident) {
                 $varID = @IPS_GetObjectIDByIdent($ident, $shcID);
                 if ($varID !== false && $varID > 0) {
-                    $this->RegisterMessage($varID, 10603); // VM_UPDATE
+                    $this->RegisterMessage($varID, VM_UPDATE);
                     $varMap[$varID] = $ident;
                     
                     // Cache current value
@@ -91,7 +91,7 @@ if (!trait_exists('CentralStateAware_Trait')) {
          */
         protected function HandleCentralStateMessage(int $SenderID, int $Message, array $Data): bool
         {
-            if ($Message === 10603) { // VM_UPDATE
+            if ($Message === VM_UPDATE) {
                 $mapStr = $this->GetBuffer('CSA_VarMap');
                 if ($mapStr !== '') {
                     $map = json_decode($mapStr, true);
@@ -125,6 +125,18 @@ if (!trait_exists('CentralStateAware_Trait')) {
         {
             $val = $this->GetBuffer('CSA_ActivityMode');
             return $val !== '' ? (int)unserialize($val) : 0;
+        }
+
+        /**
+         * Generic getter for any cached central state value.
+         * 
+         * @param string $ident The state ident (e.g., 'FireplaceActive', 'IrrigationActive')
+         * @return mixed The cached value, or null if not subscribed
+         */
+        public function GetCentralState(string $ident): mixed
+        {
+            $val = $this->GetBuffer('CSA_' . $ident);
+            return $val !== '' ? unserialize($val) : null;
         }
 
         public function IsHome(): bool
@@ -168,6 +180,6 @@ if (!trait_exists('CentralStateAware_Trait')) {
          * @param string $stateName Ident of the changed central state
          * @param mixed $newValue New value of the state
          */
-        abstract private function OnCentralStateChanged(string $stateName, mixed $newValue): void;
+        abstract protected function OnCentralStateChanged(string $stateName, mixed $newValue): void;
     }
 }

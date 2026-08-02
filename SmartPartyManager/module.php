@@ -80,9 +80,6 @@ class SmartPartyManager extends IPSModuleStrict
         $this->RegisterVariableString('GuestListHTML', 'Gaesteliste', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION
         ], 8);
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('GuestListHTML'), [
-            'type' => 'HTML',
-        ]);
 
         // Timer für periodische RSVP-Prüfung
         $this->RegisterTimer('RSVPCheckTimer', 0, 'SPM_CheckRSVP($_IPS[\'TARGET\']);');
@@ -148,6 +145,10 @@ class SmartPartyManager extends IPSModuleStrict
 
         // Gästeliste aktualisieren
         $this->UpdateDisplayVariables();
+
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('GuestListHTML'), [
+            'type' => 'HTML',
+        ]);
 
         $this->EnableAction('PartyActive');
 
@@ -942,6 +943,8 @@ class SmartPartyManager extends IPSModuleStrict
         <tbody>
             {$rows}
         </tbody>
+    </table>
+</div>
 HTML;
     }
 }
