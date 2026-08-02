@@ -98,9 +98,9 @@ class SmartPartyManager extends IPSModuleStrict
         $this->SetStatus(102);
 
         // Alte Variablen aufräumen falls vorhanden
-        $this->MaintainVariable('EventName', 'Event Name', 3, '', 1, false);
-        $this->MaintainVariable('EventDate', 'Datum & Uhrzeit', 3, '', 2, false);
-        $this->MaintainVariable('EventLocation', 'Ort', 3, '', 3, false);
+        $this->UnregisterVariable('EventName');
+        $this->UnregisterVariable('EventDate');
+        $this->UnregisterVariable('EventLocation');
 
         // Custom Presentation für EventActive
         $eventActiveOptions = json_encode([
