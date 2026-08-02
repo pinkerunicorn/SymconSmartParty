@@ -25,7 +25,7 @@ if (!trait_exists('CentralStateAware_Trait')) {
          * 
          * @param array $stateNames Array of Idents (e.g., 'PresenceMode', 'ActivityMode')
          */
-        protected function SubscribeToCentralStates(array $stateNames): void
+        protected function SubscribeToCentralStates(array $stateNames, bool $createMirrors = false): void
         {
             // Unregister old messages
             $oldMapStr = $this->GetBuffer('CSA_VarMap');
@@ -66,66 +66,75 @@ if (!trait_exists('CentralStateAware_Trait')) {
                     
                     // Erstelle eine ECHTE Variable im Modul als Mirror ("Beweis" dass das Modul es verstanden hat)
                     $mirrorIdent = 'CSA_State_' . $ident;
-                    $varObj = IPS_GetVariable($varID);
-                    
-                    if ($varObj['VariableType'] === 0) {
-                        $this->RegisterVariableBoolean($mirrorIdent, IPS_GetName($varID), [], -100);
-                    } elseif ($varObj['VariableType'] === 1) {
-                        $this->RegisterVariableInteger($mirrorIdent, IPS_GetName($varID), [], -100);
-                    } elseif ($varObj['VariableType'] === 2) {
-                        $this->RegisterVariableFloat($mirrorIdent, IPS_GetName($varID), [], -100);
-                    } else {
-                        $this->RegisterVariableString($mirrorIdent, IPS_GetName($varID), [], -100);
-                    }
-                    
-                    $profile = $varObj['VariableCustomProfile'] !== '' ? $varObj['VariableCustomProfile'] : $varObj['VariableProfile'];
-                    if ($profile !== '') {
-                        IPS_SetVariableCustomProfile($this->GetIDForIdent($mirrorIdent), $profile);
-                    }
-                    IPS_SetIcon($this->GetIDForIdent($mirrorIdent), IPS_GetObject($varID)['ObjectIcon']);
+                    if ($createMirrors) {
+                        $varObj = IPS_GetVariable($varID);
+                        
+                        $baseProfile = ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION];
+                        if ($varObj['VariableType'] === 0) {
+                            $this->RegisterVariableBoolean($mirrorIdent, IPS_GetName($varID), $baseProfile, -100);
+                        } elseif ($varObj['VariableType'] === 1) {
+                            $this->RegisterVariableInteger($mirrorIdent, IPS_GetName($varID), $baseProfile, -100);
+                        } elseif ($varObj['VariableType'] === 2) {
+                            $this->RegisterVariableFloat($mirrorIdent, IPS_GetName($varID), $baseProfile, -100);
+                        } else {
+                            $this->RegisterVariableString($mirrorIdent, IPS_GetName($varID), $baseProfile, -100);
+                        }
+                        
+                        $profile = $varObj['VariableCustomProfile'] !== '' ? $varObj['VariableCustomProfile'] : $varObj['VariableProfile'];
+                        if ($profile !== '') {
+                            IPS_SetVariableCustomProfile($this->GetIDForIdent($mirrorIdent), $profile);
+                        }
+                        IPS_SetIcon($this->GetIDForIdent($mirrorIdent), IPS_GetObject($varID)['ObjectIcon']);
 
-                    // Symcon 8: Custom Presentation explicitly for central states
-                    if ($ident === 'PresenceMode') {
-                        $intervals = [
-                            [ 'IntervalMinValue' => 0, 'IntervalMaxValue' => 1, 'ConstantActive' => true, 'ConstantValue' => 'Zuhause', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'House', 'ColorActive' => true, 'ColorValue' => 0x00CC00, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ],
-                            [ 'IntervalMinValue' => 1, 'IntervalMaxValue' => 2, 'ConstantActive' => true, 'ConstantValue' => 'Kurz weg', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Motion', 'ColorActive' => true, 'ColorValue' => 0xFFAA00, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ],
-                            [ 'IntervalMinValue' => 2, 'IntervalMaxValue' => 3, 'ConstantActive' => true, 'ConstantValue' => 'Urlaub', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Suitcase', 'ColorActive' => true, 'ColorValue' => 0xFF4400, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ]
-                        ];
-                        IPS_SetVariableCustomPresentation($this->GetIDForIdent($mirrorIdent), [
-                            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
-                            'ICON' => 'House',
-                            'COLOR' => -1,
-                            'CONTENT_COLOR' => -1,
-                            'DISPLAY_TYPE' => 0,
-                            'PREVIEW_STYLE' => 1,
-                            'SHOW_PREVIEW' => true,
-                            'INTERVALS_ACTIVE' => true,
-                            'INTERVALS' => json_encode($intervals)
-                        ]);
-                        IPS_SetVariableCustomProfile($this->GetIDForIdent($mirrorIdent), '');
-                    } elseif ($ident === 'ActivityMode') {
-                        $intervals = [
-                            [ 'IntervalMinValue' => 0, 'IntervalMaxValue' => 1, 'ConstantActive' => true, 'ConstantValue' => 'Normal', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Sun', 'ColorActive' => true, 'ColorValue' => 0x00CC00, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ],
-                            [ 'IntervalMinValue' => 1, 'IntervalMaxValue' => 2, 'ConstantActive' => true, 'ConstantValue' => 'Kino', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'TV', 'ColorActive' => true, 'ColorValue' => 0x8800FF, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ],
-                            [ 'IntervalMinValue' => 2, 'IntervalMaxValue' => 3, 'ConstantActive' => true, 'ConstantValue' => 'Schlafen', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Moon', 'ColorActive' => true, 'ColorValue' => 0x0000FF, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ],
-                            [ 'IntervalMinValue' => 3, 'IntervalMaxValue' => 4, 'ConstantActive' => true, 'ConstantValue' => 'Party', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Speaker', 'ColorActive' => true, 'ColorValue' => 0xFF0000, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ]
-                        ];
-                        IPS_SetVariableCustomPresentation($this->GetIDForIdent($mirrorIdent), [
-                            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
-                            'ICON' => 'Sun',
-                            'COLOR' => -1,
-                            'CONTENT_COLOR' => -1,
-                            'DISPLAY_TYPE' => 0,
-                            'PREVIEW_STYLE' => 1,
-                            'SHOW_PREVIEW' => true,
-                            'INTERVALS_ACTIVE' => true,
-                            'INTERVALS' => json_encode($intervals)
-                        ]);
-                        IPS_SetVariableCustomProfile($this->GetIDForIdent($mirrorIdent), '');
+                        // Symcon 8: Custom Presentation explicitly for central states
+                        if ($ident === 'PresenceMode') {
+                            $intervals = [
+                                [ 'IntervalMinValue' => 0, 'IntervalMaxValue' => 1, 'ConstantActive' => true, 'ConstantValue' => 'Zuhause', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'House', 'ColorActive' => true, 'ColorValue' => 0x00CC00, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ],
+                                [ 'IntervalMinValue' => 1, 'IntervalMaxValue' => 2, 'ConstantActive' => true, 'ConstantValue' => 'Kurz weg', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Motion', 'ColorActive' => true, 'ColorValue' => 0xFFAA00, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ],
+                                [ 'IntervalMinValue' => 2, 'IntervalMaxValue' => 3, 'ConstantActive' => true, 'ConstantValue' => 'Urlaub', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Suitcase', 'ColorActive' => true, 'ColorValue' => 0xFF4400, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ]
+                            ];
+                            IPS_SetVariableCustomPresentation($this->GetIDForIdent($mirrorIdent), [
+                                'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+                                'ICON' => 'House',
+                                'COLOR' => -1,
+                                'CONTENT_COLOR' => -1,
+                                'DISPLAY_TYPE' => 0,
+                                'PREVIEW_STYLE' => 1,
+                                'SHOW_PREVIEW' => true,
+                                'INTERVALS_ACTIVE' => true,
+                                'INTERVALS' => json_encode($intervals)
+                            ]);
+                            IPS_SetVariableCustomProfile($this->GetIDForIdent($mirrorIdent), '');
+                        } elseif ($ident === 'ActivityMode') {
+                            $intervals = [
+                                [ 'IntervalMinValue' => 0, 'IntervalMaxValue' => 1, 'ConstantActive' => true, 'ConstantValue' => 'Normal', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Sun', 'ColorActive' => true, 'ColorValue' => 0x00CC00, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ],
+                                [ 'IntervalMinValue' => 1, 'IntervalMaxValue' => 2, 'ConstantActive' => true, 'ConstantValue' => 'Kino', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'TV', 'ColorActive' => true, 'ColorValue' => 0x8800FF, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ],
+                                [ 'IntervalMinValue' => 2, 'IntervalMaxValue' => 3, 'ConstantActive' => true, 'ConstantValue' => 'Schlafen', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Moon', 'ColorActive' => true, 'ColorValue' => 0x0000FF, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ],
+                                [ 'IntervalMinValue' => 3, 'IntervalMaxValue' => 4, 'ConstantActive' => true, 'ConstantValue' => 'Party', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Speaker', 'ColorActive' => true, 'ColorValue' => 0xFF0000, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ]
+                            ];
+                            IPS_SetVariableCustomPresentation($this->GetIDForIdent($mirrorIdent), [
+                                'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+                                'ICON' => 'Sun',
+                                'COLOR' => -1,
+                                'CONTENT_COLOR' => -1,
+                                'DISPLAY_TYPE' => 0,
+                                'PREVIEW_STYLE' => 1,
+                                'SHOW_PREVIEW' => true,
+                                'INTERVALS_ACTIVE' => true,
+                                'INTERVALS' => json_encode($intervals)
+                            ]);
+                            IPS_SetVariableCustomProfile($this->GetIDForIdent($mirrorIdent), '');
+                        }
+                        
+                        // Setze den initialen Wert
+                        $this->SetValue($mirrorIdent, $value);
+                    } else {
+                        // Lösche den Mirror, falls vorhanden
+                        $mirrorID = @$this->GetIDForIdent($mirrorIdent);
+                        if ($mirrorID !== false) {
+                            $this->UnregisterVariable($mirrorIdent);
+                        }
                     }
-                    
-                    // Setze den initialen Wert
-                    $this->SetValue($mirrorIdent, $value);
                 }
             }
 
@@ -151,7 +160,9 @@ if (!trait_exists('CentralStateAware_Trait')) {
                         $newValue = $Data[0];
                         
                         $this->SetBuffer('CSA_' . $ident, serialize($newValue));
-                        $this->SetValue('CSA_State_' . $ident, $newValue);
+                        if (@$this->GetIDForIdent('CSA_State_' . $ident) !== false) {
+                            $this->SetValue('CSA_State_' . $ident, $newValue);
+                        }
                         $this->OnCentralStateChanged($ident, $newValue);
                         return true;
                     }
