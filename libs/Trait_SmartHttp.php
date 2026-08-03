@@ -48,6 +48,7 @@ if (!trait_exists('SmartHttp_Trait')) {
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
             curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
             curl_setopt($ch, CURLOPT_CUSTOMREQUEST, strtoupper($method));
+            curl_setopt($ch, CURLOPT_USERAGENT, 'Symcon/SmartTools (PHP cURL)');
 
             if (!empty($headers)) {
                 curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);

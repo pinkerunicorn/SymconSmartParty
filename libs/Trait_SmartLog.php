@@ -37,7 +37,7 @@ trait SmartLog_Trait
                 SLOG_Log($slogInstances[0], $level, $source, $message, $details);
             }
         } else {
-            IPS_LogMessage('SmartVillaKunterbunt', $source . ': ' . $message);
+            IPS_LogMessage($source, $message);
         }
     }
 

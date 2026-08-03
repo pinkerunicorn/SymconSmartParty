@@ -48,7 +48,7 @@ class SmartPartyManager extends IPSModuleStrict
         $this->RegisterAttributeString('EventData', '{}');
 
         $this->RegisterVariableBoolean('EventActive', 'Event aktiv', [
-            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON'         => 'Calendar',
             'COLOR' => -1,
             'CONTENT_COLOR' => -1,
@@ -102,6 +102,8 @@ class SmartPartyManager extends IPSModuleStrict
     public function ApplyChanges(): void
     {
         parent::ApplyChanges();
+        
+        $this->DA_ApplyPresentation();
 
         $gatewayId = $this->ReadPropertyInteger('GatewayInstance');
         if (empty($gatewayId)) {

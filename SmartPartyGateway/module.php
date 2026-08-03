@@ -59,6 +59,8 @@ class SmartPartyGateway extends IPSModuleStrict
     public function ApplyChanges(): void
     {
         parent::ApplyChanges();
+        
+        $this->DA_ApplyPresentation();
 
         $clientId = $this->ReadPropertyString('GoogleClientID');
         if (empty($clientId)) {

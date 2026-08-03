@@ -131,8 +131,15 @@ if (!trait_exists('DeviceAvailability_Trait')) {
 
                 // Alarm senden wenn Priorität konfiguriert und NotificationAware_Trait verfügbar
                 $priority = (int)$this->ReadPropertyInteger('AvailabilityAlarmPriority');
-                if ($priority >= 0 && method_exists($this, 'Notify')) {
-                    $this->Notify($priority, '⚠️ ' . $instanceName . ': ' . $message);
+                if ($priority >= 0 && method_exists($this, 'NotifyLow')) {
+                    $alarmTitle = '⚠️ Gerät offline';
+                    $alarmMsg = $instanceName . ': ' . $message;
+                    match($priority) {
+                        0 => $this->NotifyLow($alarmTitle, $alarmMsg),
+                        1 => $this->NotifyMedium($alarmTitle, $alarmMsg),
+                        2 => $this->NotifyHigh($alarmTitle, $alarmMsg),
+                        default => $this->NotifyMedium($alarmTitle, $alarmMsg),
+                    };
                 }
             }
         }
