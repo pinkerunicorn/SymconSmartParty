@@ -48,8 +48,21 @@ class SmartPartyManager extends IPSModuleStrict
         $this->RegisterAttributeString('EventData', '{}');
 
         $this->RegisterVariableBoolean('EventActive', 'Event aktiv', [
-            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'         => 'Calendar'
+            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+            'ICON'         => 'Calendar',
+            'COLOR' => -1,
+            'CONTENT_COLOR' => -1,
+            'DISPLAY_TYPE' => 0,
+            'PREVIEW_STYLE' => 1,
+            'SHOW_PREVIEW' => true,
+            'OPTIONS' => json_encode([
+                ['Value' => false, 'Caption' => 'Kein Event', 'IconValue' => 'Calendar', 'IconActive' => true,
+                 'ColorActive' => false, 'ColorDisplay' => -1, 'ContentColorActive' => false,
+                 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => -1],
+                ['Value' => true, 'Caption' => 'Event aktiv', 'IconValue' => 'Calendar', 'IconActive' => true,
+                 'ColorActive' => true, 'ColorDisplay' => 0x00CC00, 'ContentColorActive' => false,
+                 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x00CC00]
+            ])
         ], 0);
 
         $this->RegisterVariableBoolean('PartyActive', '🎉 Party-Modus', [
@@ -78,7 +91,8 @@ class SmartPartyManager extends IPSModuleStrict
         ], 7);
 
         $this->RegisterVariableString('GuestListHTML', 'Gaesteliste', [
-            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'type' => 'HTML'
         ], 8);
 
         // Timer für periodische RSVP-Prüfung
@@ -102,25 +116,7 @@ class SmartPartyManager extends IPSModuleStrict
         $this->UnregisterVariable('EventDate');
         $this->UnregisterVariable('EventLocation');
 
-        // Custom Presentation für EventActive
-        $eventActiveOptions = json_encode([
-            ['Value' => false, 'Caption' => 'Kein Event', 'IconValue' => 'Calendar', 'IconActive' => true,
-             'ColorActive' => false, 'ColorDisplay' => -1, 'ContentColorActive' => false,
-             'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => -1],
-            ['Value' => true, 'Caption' => 'Event aktiv', 'IconValue' => 'Calendar', 'IconActive' => true,
-             'ColorActive' => true, 'ColorDisplay' => 0x00CC00, 'ContentColorActive' => false,
-             'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x00CC00]
-        ]);
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('EventActive'), [
-            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
-            'ICON' => 'Calendar',
-            'COLOR' => -1,
-            'CONTENT_COLOR' => -1,
-            'DISPLAY_TYPE' => 0,
-            'PREVIEW_STYLE' => 1,
-            'SHOW_PREVIEW' => true,
-            'OPTIONS' => $eventActiveOptions
-        ]);
+
 
         // Referenzen registrieren
         foreach ($this->GetReferenceList() as $refID) {
@@ -146,14 +142,12 @@ class SmartPartyManager extends IPSModuleStrict
         // Gästeliste aktualisieren
         $this->UpdateDisplayVariables();
 
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('GuestListHTML'), [
-            'type' => 'HTML',
-        ]);
+
 
         $this->EnableAction('PartyActive');
 
         $this->DA_SetAvailable(true);
-        $this->DA_ApplyPresentation();
+
     }
 
     public function RequestAction(string $Ident, mixed $Value): void

@@ -17,9 +17,6 @@ declare(strict_types=1);
  *   $this->DA_RegisterAvailability();           // immer
  *   $this->DA_RegisterWatchdog();               // nur bei Push-basierten Modulen (MQTT, SSE, WS)
  *
- * In ApplyChanges():
- *   $this->DA_ApplyPresentation();
- *
  * Bei eingehenden Daten:
  *   $this->DA_SetAvailable(true);
  *   $this->DA_ResetWatchdog(300);               // nur bei Watchdog-Modulen
@@ -45,9 +42,37 @@ if (!trait_exists('DeviceAvailability_Trait')) {
          */
         private function DA_RegisterAvailability(int $position = 900): void
         {
+            $options = json_encode([
+                [
+                    'Value'               => false,
+                    'Caption'             => 'Offline',
+                    'IconValue'           => 'NetworkDisconnected',
+                    'IconActive'          => true,
+                    'ColorActive'         => true,
+                    'ColorDisplay'        => 0xFF4444,
+                    'ContentColorActive'  => false,
+                    'ContentColorDisplay' => -1,
+                    'ContentColorValue'   => -1,
+                    'ColorValue'          => 0xFF4444
+                ],
+                [
+                    'Value'               => true,
+                    'Caption'             => 'Online',
+                    'IconValue'           => 'Network',
+                    'IconActive'          => true,
+                    'ColorActive'         => true,
+                    'ColorDisplay'        => 0x00CC44,
+                    'ContentColorActive'  => false,
+                    'ContentColorDisplay' => -1,
+                    'ContentColorValue'   => -1,
+                    'ColorValue'          => 0x00CC44
+                ]
+            ]);
+
             $this->RegisterVariableBoolean('DeviceAvailable', 'Gerätestatus', [
                 'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                'ICON'         => 'Network'
+                'ICON'         => 'Network',
+                'OPTIONS'      => $options
             ], $position);
 
             // Property für Alarm-Priorität (0=Low, 1=Medium, 2=High, -1=kein Alarm)
@@ -159,58 +184,13 @@ if (!trait_exists('DeviceAvailability_Trait')) {
         // -------------------------------------------------------------------
 
         /**
-         * Setzt die CustomPresentation für die DeviceAvailable-Variable.
-         * Aufruf in ApplyChanges() des Moduls.
+         * Veraltet: In Symcon 8 muss das Profil direkt bei der Erstellung übergeben werden.
+         * Die Logik wurde in DA_RegisterAvailability verschoben.
+         * Dummy-Methode zur Abwärtskompatibilität, damit alte module.php nicht sofort brechen.
          */
         private function DA_ApplyPresentation(): void
         {
-            $varID = @$this->GetIDForIdent('DeviceAvailable');
-            if ($varID === false || $varID === 0) {
-                return;
-            }
-
-            // Sicherstellen dass der Variablenname immer korrekt ist (Migration)
-            if (IPS_GetName($varID) !== 'Gerätestatus') {
-                IPS_SetName($varID, 'Gerätestatus');
-            }
-
-            $options = json_encode([
-                [
-                    'Value'               => false,
-                    'Caption'             => 'Offline',
-                    'IconValue'           => 'NetworkDisconnected',
-                    'IconActive'          => true,
-                    'ColorActive'         => true,
-                    'ColorDisplay'        => 0xFF4444,
-                    'ContentColorActive'  => false,
-                    'ContentColorDisplay' => -1,
-                    'ContentColorValue'   => -1,
-                    'ColorValue'          => 0xFF4444
-                ],
-                [
-                    'Value'               => true,
-                    'Caption'             => 'Online',
-                    'IconValue'           => 'Network',
-                    'IconActive'          => true,
-                    'ColorActive'         => true,
-                    'ColorDisplay'        => 0x00CC44,
-                    'ContentColorActive'  => false,
-                    'ContentColorDisplay' => -1,
-                    'ContentColorValue'   => -1,
-                    'ColorValue'          => 0x00CC44
-                ]
-            ]);
-
-            IPS_SetVariableCustomPresentation($varID, [
-                'PRESENTATION'  => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
-                'ICON'          => 'Network',
-                'COLOR'         => -1,
-                'CONTENT_COLOR' => -1,
-                'DISPLAY_TYPE'  => 0,
-                'PREVIEW_STYLE' => 1,
-                'SHOW_PREVIEW'  => true,
-                'OPTIONS'       => $options
-            ]);
+            // Do nothing
         }
     }
 }

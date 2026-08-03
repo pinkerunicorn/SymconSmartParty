@@ -69,7 +69,7 @@ class SmartPartyGateway extends IPSModuleStrict
 
         $this->RegisterHook('/hook/SmartPartyGateway');
         $this->UpdateAuthStatusVariable();
-        $this->DA_ApplyPresentation();
+
     }
 
     public function RequestAction(string $Ident, mixed $Value): void
