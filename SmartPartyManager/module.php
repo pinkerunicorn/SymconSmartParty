@@ -158,7 +158,10 @@ class SmartPartyManager extends IPSModuleStrict
             case 'PartyActive':
                 $this->SetValue($Ident, $Value);
                 if (function_exists('SHC_SetActivityMode')) {
-                    SHC_SetActivityMode($Value ? 3 : 0);
+                    $shcInstances = IPS_GetInstanceListByModuleID('{460D7C60-0766-4534-BFD8-5920737B1845}');
+                    if (!empty($shcInstances)) {
+                        SHC_SetActivityMode($shcInstances[0], $Value ? 3 : 0);
+                    }
                 }
                 break;
             case 'DA_Watchdog':
