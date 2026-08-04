@@ -65,9 +65,9 @@ class SmartPartyManager extends IPSModuleStrict
             ])
         ], 0);
 
-        $this->RegisterVariableBoolean('PartyActive', '🎉 Party-Modus', [
+        $this->RegisterVariableBoolean('PartyActive', 'Party-Modus', [
             'PRESENTATION' => VARIABLE_PRESENTATION_SWITCH,
-            'ICON'         => 'Speaker'
+            'ICON'         => 'Party'
         ], 1);
 
         $this->RegisterVariableInteger('TotalGuests', 'Gäste gesamt', [
