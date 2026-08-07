@@ -1,0 +1,16 @@
+{
+    "id": "{A7E3C1F9-4B2D-8E6A-D5C0-3F9B1E7A2D84}",
+    "name": "SmartLedFX",
+    "type": 3,
+    "vendor": "Florian Gra\u00dfinger",
+    "aliases": [
+        "Smart LedFX",
+        "LedFx Controller"
+    ],
+    "parentRequirements": [],
+    "childRequirements": [],
+    "implemented": [],
+    "prefix": "SLFX",
+    "url": "https://github.com/pinkerunicorn/SymconSmartParty/tree/main/SmartLedFX",
+    "author": "Florian Gra\u00dfinger"
+}
