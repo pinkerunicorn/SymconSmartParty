@@ -26,7 +26,7 @@ trait SmartLog_Trait
      * @param string $message Kurze Logmeldung
      * @param string $details Optionale Details
      */
-    private function SLog(string $level, string $message, string $details = ''): void
+    private function SLog(string $level, string $message, string $details = '', string $trigger = ''): void
     {
         // Modulnamen aus dem Klassennamen ableiten
         $source = static::class;
@@ -34,31 +34,31 @@ trait SmartLog_Trait
         $slogInstances = @IPS_GetInstanceListByModuleID('{E4375147-F095-4B6F-9E06-F3A65EB8B635}');
         if (is_array($slogInstances) && count($slogInstances) > 0) {
             if (function_exists('SLOG_Log')) {
-                SLOG_Log($slogInstances[0], $level, $source, $message, $details);
+                SLOG_Log($slogInstances[0], $level, $source, $message, $details, $trigger);
             }
         } else {
             IPS_LogMessage($source, $message);
         }
     }
 
-    private function SLogDebug(string $message, string $details = ''): void
+    private function SLogDebug(string $message, string $details = '', string $trigger = ''): void
     {
-        $this->SLog('DEBUG', $message, $details);
+        $this->SLog('DEBUG', $message, $details, $trigger);
     }
 
-    private function SLogInfo(string $message, string $details = ''): void
+    private function SLogInfo(string $message, string $details = '', string $trigger = ''): void
     {
-        $this->SLog('INFO', $message, $details);
+        $this->SLog('INFO', $message, $details, $trigger);
     }
 
-    private function SLogWarning(string $message, string $details = ''): void
+    private function SLogWarning(string $message, string $details = '', string $trigger = ''): void
     {
-        $this->SLog('WARNING', $message, $details);
+        $this->SLog('WARNING', $message, $details, $trigger);
     }
 
-    private function SLogError(string $message, string $details = ''): void
+    private function SLogError(string $message, string $details = '', string $trigger = ''): void
     {
-        $this->SLog('ERROR', $message, $details);
+        $this->SLog('ERROR', $message, $details, $trigger);
     }
 }
 }
