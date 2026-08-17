@@ -52,7 +52,7 @@ class SmartPartyGateway extends IPSModuleStrict
         // Status variable
         $this->RegisterVariableString('AuthStatus', 'Google Auth Status', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'         => 'Network',
+            'ICON'         => 'network-wired',
         ], 0);
     }
 

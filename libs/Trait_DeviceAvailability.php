@@ -58,7 +58,7 @@ if (!trait_exists('DeviceAvailability_Trait')) {
                 [
                     'Value'               => true,
                     'Caption'             => 'Online',
-                    'IconValue'           => 'Network',
+                    'IconValue'           => 'network-wired',
                     'IconActive'          => true,
                     'ColorActive'         => true,
                     'ColorDisplay'        => 0x00CC44,
@@ -71,7 +71,7 @@ if (!trait_exists('DeviceAvailability_Trait')) {
 
             $this->RegisterVariableBoolean('DeviceAvailable', 'Gerätestatus', [
                 'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                'ICON'         => 'Network',
+                'ICON'         => 'network-wired',
                 'OPTIONS'      => $options
             ], $position);
 

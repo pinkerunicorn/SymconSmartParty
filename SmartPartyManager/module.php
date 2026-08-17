@@ -49,17 +49,17 @@ class SmartPartyManager extends IPSModuleStrict
 
         $this->RegisterVariableBoolean('EventActive', 'Event aktiv', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'         => 'Calendar',
+            'ICON'         => 'calendar-days',
             'COLOR' => -1,
             'CONTENT_COLOR' => -1,
             'DISPLAY_TYPE' => 0,
             'PREVIEW_STYLE' => 1,
             'SHOW_PREVIEW' => true,
             'OPTIONS' => json_encode([
-                ['Value' => false, 'Caption' => 'Kein Event', 'IconValue' => 'Calendar', 'IconActive' => true,
+                ['Value' => false, 'Caption' => 'Kein Event', 'IconValue' => 'calendar-days', 'IconActive' => true,
                  'ColorActive' => false, 'ColorDisplay' => -1, 'ContentColorActive' => false,
                  'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => -1],
-                ['Value' => true, 'Caption' => 'Event aktiv', 'IconValue' => 'Calendar', 'IconActive' => true,
+                ['Value' => true, 'Caption' => 'Event aktiv', 'IconValue' => 'calendar-days', 'IconActive' => true,
                  'ColorActive' => true, 'ColorDisplay' => 0x00CC00, 'ContentColorActive' => false,
                  'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x00CC00]
             ])
@@ -67,27 +67,27 @@ class SmartPartyManager extends IPSModuleStrict
 
         $this->RegisterVariableBoolean('PartyActive', 'Party-Modus', [
             'PRESENTATION' => VARIABLE_PRESENTATION_SWITCH,
-            'ICON'         => 'Party'
+            'ICON'         => 'martini-glass'
         ], 1);
 
         $this->RegisterVariableInteger('TotalGuests', 'Gäste gesamt', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'         => 'Persons'
+            'ICON'         => 'users'
         ], 4);
 
         $this->RegisterVariableInteger('ConfirmedGuests', 'Zusagen', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'         => 'Ok'
+            'ICON'         => 'circle-check'
         ], 5);
 
         $this->RegisterVariableInteger('DeclinedGuests', 'Absagen', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'         => 'Warning'
+            'ICON'         => 'triangle-exclamation'
         ], 6);
 
         $this->RegisterVariableInteger('PendingGuests', 'Ausstehend', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'         => 'Clock'
+            'ICON'         => 'clock'
         ], 7);
 
         $this->RegisterVariableString('GuestListHTML', 'Gaesteliste', [

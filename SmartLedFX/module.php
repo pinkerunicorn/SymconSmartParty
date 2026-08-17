@@ -53,7 +53,7 @@ class SmartLedFX extends IPSModuleStrict
         // Hauptschalter
         $this->RegisterVariableBoolean('ShowActive', 'Audio-Show', [
             'PRESENTATION' => VARIABLE_PRESENTATION_SWITCH,
-            'ICON'         => 'Melody'
+            'ICON'         => 'music'
         ], 1);
 
         // Show-Modus (Dropdown)
@@ -62,7 +62,7 @@ class SmartLedFX extends IPSModuleStrict
             'OPTIONS' => json_encode([
                 ['Value' => self::MODE_WOHNZIMMER, 'Caption' => 'Nur Wohnzimmer', 'IconActive' => true, 'IconValue' => 'Sofa',      'Color' => 0x3399FF],
                 ['Value' => self::MODE_GARTEN,     'Caption' => 'Nur Garten',     'IconActive' => true, 'IconValue' => 'Tree',      'Color' => 0x33CC33],
-                ['Value' => self::MODE_BEIDES,     'Caption' => 'Beides',         'IconActive' => true, 'IconValue' => 'Light',     'Color' => 0xFF9900],
+                ['Value' => self::MODE_BEIDES,     'Caption' => 'Beides',         'IconActive' => true, 'IconValue' => 'lightbulb',     'Color' => 0xFF9900],
                 ['Value' => self::MODE_FREQ_SPLIT, 'Caption' => 'Frequency Split','IconActive' => true, 'IconValue' => 'Frequency', 'Color' => 0xFF00FF]
             ])
         ], 2);
@@ -70,7 +70,7 @@ class SmartLedFX extends IPSModuleStrict
         // Helligkeit Wohnzimmer
         $this->RegisterVariableInteger('BrightnessWohnzimmer', 'Helligkeit Wohnzimmer', [
             'PRESENTATION' => VARIABLE_PRESENTATION_SLIDER,
-            'ICON'         => 'Sun',
+            'ICON'         => 'sun',
             'SUFFIX'       => '%',
             'MIN'          => 0,
             'MAX'          => 100,
@@ -81,7 +81,7 @@ class SmartLedFX extends IPSModuleStrict
         // Helligkeit Garten
         $this->RegisterVariableInteger('BrightnessGarten', 'Helligkeit Garten', [
             'PRESENTATION' => VARIABLE_PRESENTATION_SLIDER,
-            'ICON'         => 'Sun',
+            'ICON'         => 'sun',
             'SUFFIX'       => '%',
             'MIN'          => 0,
             'MAX'          => 100,
@@ -92,13 +92,13 @@ class SmartLedFX extends IPSModuleStrict
         // Aktive Szene (read-only)
         $this->RegisterVariableString('ActiveScene', 'Aktive Szene', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'         => 'Scene'
+            'ICON'         => 'clapperboard'
         ], 10);
 
         // LedFx Version (read-only)
         $this->RegisterVariableString('LedFxVersion', 'LedFx Version', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'         => 'Information'
+            'ICON'         => 'microchip'
         ], 100);
 
         // Timer
