@@ -38,9 +38,9 @@ class SmartLedFX extends IPSModuleStrict
         $this->RegisterPropertyString('SceneFreqSplit', '');
         $this->RegisterPropertyString('SceneOff', '');
 
-        // WLED Controller IPs
-        $this->RegisterPropertyString('WledIpWohnzimmer', '');
-        $this->RegisterPropertyString('WledIpGarten', '');
+        // LedFx Virtuals für Helligkeitssteuerung
+        $this->RegisterPropertyString('LedFxVirtualWohnzimmer', '');
+        $this->RegisterPropertyString('LedFxVirtualGarten', '');
 
         // Lyngdorf Verknüpfung
         $this->RegisterPropertyInteger('LyngdorfInstance', 0);
@@ -171,12 +171,12 @@ class SmartLedFX extends IPSModuleStrict
 
             case 'BrightnessWohnzimmer':
                 $this->SetValue('BrightnessWohnzimmer', $Value);
-                $this->SetWledBrightness('WledIpWohnzimmer', $Value);
+                $this->SetLedFxVirtualBrightness('LedFxVirtualWohnzimmer', $Value);
                 break;
 
             case 'BrightnessGarten':
                 $this->SetValue('BrightnessGarten', $Value);
-                $this->SetWledBrightness('WledIpGarten', $Value);
+                $this->SetLedFxVirtualBrightness('LedFxVirtualGarten', $Value);
                 break;
 
             case 'DA_Watchdog':
@@ -196,27 +196,21 @@ class SmartLedFX extends IPSModuleStrict
     {
         $mode = $this->GetValue('ShowMode');
 
-        // 1. WLED Live Override aktivieren (nur für betroffene Zonen)
+        // 1. Modus und zugehörige Szene ermitteln
         switch ($mode) {
             case self::MODE_WOHNZIMMER:
-                $this->SetWledOverride('WledIpWohnzimmer', true);
                 $sceneProperty = 'SceneWohnzimmer';
                 break;
 
             case self::MODE_GARTEN:
-                $this->SetWledOverride('WledIpGarten', true);
                 $sceneProperty = 'SceneGarten';
                 break;
 
             case self::MODE_BEIDES:
-                $this->SetWledOverride('WledIpWohnzimmer', true);
-                $this->SetWledOverride('WledIpGarten', true);
                 $sceneProperty = 'SceneBeides';
                 break;
 
             case self::MODE_FREQ_SPLIT:
-                $this->SetWledOverride('WledIpWohnzimmer', true);
-                $this->SetWledOverride('WledIpGarten', true);
                 $sceneProperty = 'SceneFreqSplit';
                 break;
 
@@ -237,7 +231,6 @@ class SmartLedFX extends IPSModuleStrict
         $success = $this->ActivateLedFxScene($sceneId);
         if (!$success) {
             $this->SLogError('LedFx-Szene konnte nicht aktiviert werden: ' . $sceneId);
-            $this->ResetAllOverrides();
             return;
         }
 
@@ -281,10 +274,7 @@ class SmartLedFX extends IPSModuleStrict
         // 2. Kurz warten, damit letzte Art-Net Pakete raus sind
         IPS_Sleep(500);
 
-        // 3. Alle WLED Live Overrides zurücksetzen
-        $this->ResetAllOverrides();
-
-        // 4. Status setzen
+        // 3. Status setzen
         $this->SetValue('ShowActive', false);
         $this->SetValue('ActiveScene', '');
 
@@ -305,69 +295,49 @@ class SmartLedFX extends IPSModuleStrict
     }
 
     // =========================================================================
-    // WLED Steuerung
-    // =========================================================================
-
-    /**
-     * Setzt den WLED Live Override (lor) für einen Controller.
-     *
-     * @param string $propertyName Name der Property mit der WLED-IP
-     * @param bool   $override     true = Override an (lor=2), false = Override aus (lor=0)
-     */
-    private function SetWledOverride(string $propertyName, bool $override): void
-    {
-        $ip = trim($this->ReadPropertyString($propertyName));
-        if (empty($ip)) {
-            return;
-        }
-
-        $url = "http://{$ip}/json/state";
-        // lor=2: Override permanent (WLED ignoriert eigenen Art-Net Output)
-        // lor=0: Normal (WLED zeigt wieder eigene Effekte)
-        $payload = ['lor' => $override ? 2 : 0];
-
-        $result = $this->HttpRequest($url, 'POST', ['Content-Type: application/json'], $payload, 3);
-        if ($result === null) {
-            $this->SLogWarning('WLED nicht erreichbar: ' . $ip);
-        } else {
-            $this->SLogDebug('WLED lor=' . ($override ? '2' : '0') . ' gesetzt: ' . $ip);
-        }
-    }
-
-    /**
-     * Setzt alle WLED Live Overrides zurück.
-     */
-    private function ResetAllOverrides(): void
-    {
-        $this->SetWledOverride('WledIpWohnzimmer', false);
-        $this->SetWledOverride('WledIpGarten', false);
-    }
-
-    /**
-     * Setzt die WLED Helligkeit (0-100% -> 0-255).
-     */
-    private function SetWledBrightness(string $propertyName, int $brightnessPercent): void
-    {
-        $ip = trim($this->ReadPropertyString($propertyName));
-        if (empty($ip)) {
-            return;
-        }
-
-        $bri = (int)round(($brightnessPercent / 100) * 255);
-        $url = "http://{$ip}/json/state";
-        $payload = ['bri' => $bri];
-
-        $result = $this->HttpRequest($url, 'POST', ['Content-Type: application/json'], $payload, 3);
-        if ($result === null) {
-            $this->SLogWarning('WLED nicht erreichbar fuer Helligkeit: ' . $ip);
-        } else {
-            $this->SLogDebug("WLED Helligkeit auf {$brightnessPercent}% ({$bri}) gesetzt: {$ip}");
-        }
-    }
-
-    // =========================================================================
     // LedFx API
     // =========================================================================
+
+    /**
+     * Setzt die Helligkeit eines LedFx Virtuals (0-100% -> 0.0 - 1.0).
+     */
+    private function SetLedFxVirtualBrightness(string $propertyName, int $brightnessPercent): void
+    {
+        $virtualId = trim($this->ReadPropertyString($propertyName));
+        if (empty($virtualId)) {
+            return;
+        }
+
+        $url = $this->GetLedFxBaseUrl() . '/api/virtuals/' . $virtualId;
+        
+        // 1. Aktuelle Config des Virtuals abrufen
+        $result = $this->HttpRequest($url, 'GET', [], null, 3);
+        if ($result === null || !isset($result['virtual'])) {
+            $this->SLogWarning('LedFx Virtual nicht gefunden: ' . $virtualId);
+            return;
+        }
+
+        $virtualData = $result['virtual'];
+        $config = $virtualData['config'] ?? [];
+        $active = $virtualData['active'] ?? true;
+
+        // 2. max_brightness anpassen (0.0 bis 1.0)
+        $maxBrightness = round($brightnessPercent / 100, 2);
+        $config['max_brightness'] = $maxBrightness;
+
+        $payload = [
+            'config' => $config,
+            'active' => $active
+        ];
+
+        // 3. Aktualisierte Config senden
+        $updateResult = $this->HttpRequest($url, 'PUT', ['Content-Type: application/json'], $payload, 3);
+        if ($updateResult === null) {
+            $this->SLogWarning('Konnte LedFx Virtual Helligkeit nicht setzen: ' . $virtualId);
+        } else {
+            $this->SLogDebug("LedFx Virtual '{$virtualId}' Helligkeit auf {$brightnessPercent}% gesetzt.");
+        }
+    }
 
     /**
      * Gibt die Basis-URL der LedFx REST API zurück.
@@ -439,6 +409,18 @@ class SmartLedFX extends IPSModuleStrict
         return $result['scenes'];
     }
 
+    private function GetLedFxVirtuals(): array
+    {
+        $url = $this->GetLedFxBaseUrl() . '/api/virtuals';
+        $result = $this->HttpRequest($url, 'GET', [], null, 5);
+
+        if ($result === null || !isset($result['virtuals'])) {
+            return [];
+        }
+
+        return $result['virtuals'];
+    }
+
     // =========================================================================
     // Health Check
     // =========================================================================
@@ -486,6 +468,21 @@ class SmartLedFX extends IPSModuleStrict
             }
         }
 
+        $virtualOptions = [['caption' => '--- Bitte waehlen ---', 'value' => '']];
+        if (!empty($host)) {
+            $virtuals = $this->GetLedFxVirtuals();
+            foreach ($virtuals as $virtualId => $virtualData) {
+                // Nur Haupt-Virtuals (die auf ein Device zeigen)
+                if (isset($virtualData['is_device']) && $virtualData['is_device'] === $virtualId) {
+                    $name = $virtualData['config']['name'] ?? $virtualId;
+                    $virtualOptions[] = [
+                        'caption' => $name,
+                        'value'   => $virtualId
+                    ];
+                }
+            }
+        }
+
         return json_encode([
             'status' => [
                 [
@@ -530,6 +527,31 @@ class SmartLedFX extends IPSModuleStrict
                     ]
                 ],
 
+                // --- LedFx Zuordnung ---
+                [
+                    'type'    => 'ExpansionPanel',
+                    'caption' => 'LedFx Zuordnung (Helligkeit)',
+                    'expanded' => true,
+                    'items'   => [
+                        [
+                            'type'    => 'Label',
+                            'caption' => 'Weise die LedFx Virtuals für Wohnzimmer und Garten zu, damit die Helligkeits-Slider funktionieren.'
+                        ],
+                        [
+                            'type'    => 'Select',
+                            'name'    => 'LedFxVirtualWohnzimmer',
+                            'caption' => 'Virtual: Wohnzimmer',
+                            'options' => $virtualOptions
+                        ],
+                        [
+                            'type'    => 'Select',
+                            'name'    => 'LedFxVirtualGarten',
+                            'caption' => 'Virtual: Garten',
+                            'options' => $virtualOptions
+                        ]
+                    ]
+                ],
+
                 // --- LedFx Szenen ---
                 [
                     'type'    => 'ExpansionPanel',
@@ -569,31 +591,6 @@ class SmartLedFX extends IPSModuleStrict
                             'name'    => 'SceneOff',
                             'caption' => 'Szene: Show beenden (Alles aus)',
                             'options' => $sceneOptions
-                        ]
-                    ]
-                ],
-
-                // --- WLED Controller ---
-                [
-                    'type'    => 'ExpansionPanel',
-                    'caption' => 'WLED Controller',
-                    'expanded' => true,
-                    'items'   => [
-                        [
-                            'type'    => 'Label',
-                            'caption' => 'IP-Adressen der WLED Controller, die bei aktiver Show per Live Override (lor) gemutet werden sollen.'
-                        ],
-                        [
-                            'type'    => 'ValidationTextBox',
-                            'name'    => 'WledIpWohnzimmer',
-                            'caption' => 'WLED IP Wohnzimmer',
-                            'width'   => '200px'
-                        ],
-                        [
-                            'type'    => 'ValidationTextBox',
-                            'name'    => 'WledIpGarten',
-                            'caption' => 'WLED IP Garten',
-                            'width'   => '200px'
                         ]
                     ]
                 ],
