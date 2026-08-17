@@ -67,6 +67,28 @@ class SmartLedFX extends IPSModuleStrict
             ])
         ], 2);
 
+        // Helligkeit Wohnzimmer
+        $this->RegisterVariableInteger('BrightnessWohnzimmer', 'Helligkeit Wohnzimmer', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_SLIDER,
+            'ICON'         => 'Sun',
+            'SUFFIX'       => '%',
+            'MIN'          => 0,
+            'MAX'          => 100,
+            'STEP'         => 1
+        ], 3);
+        $this->EnableAction('BrightnessWohnzimmer');
+
+        // Helligkeit Garten
+        $this->RegisterVariableInteger('BrightnessGarten', 'Helligkeit Garten', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_SLIDER,
+            'ICON'         => 'Sun',
+            'SUFFIX'       => '%',
+            'MIN'          => 0,
+            'MAX'          => 100,
+            'STEP'         => 1
+        ], 4);
+        $this->EnableAction('BrightnessGarten');
+
         // Aktive Szene (read-only)
         $this->RegisterVariableString('ActiveScene', 'Aktive Szene', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
@@ -145,6 +167,16 @@ class SmartLedFX extends IPSModuleStrict
                     return;
                 }
                 $this->SetValue('ShowMode', $Value);
+                break;
+
+            case 'BrightnessWohnzimmer':
+                $this->SetValue('BrightnessWohnzimmer', $Value);
+                $this->SetWledBrightness('WledIpWohnzimmer', $Value);
+                break;
+
+            case 'BrightnessGarten':
+                $this->SetValue('BrightnessGarten', $Value);
+                $this->SetWledBrightness('WledIpGarten', $Value);
                 break;
 
             case 'DA_Watchdog':
@@ -309,6 +341,28 @@ class SmartLedFX extends IPSModuleStrict
     {
         $this->SetWledOverride('WledIpWohnzimmer', false);
         $this->SetWledOverride('WledIpGarten', false);
+    }
+
+    /**
+     * Setzt die WLED Helligkeit (0-100% -> 0-255).
+     */
+    private function SetWledBrightness(string $propertyName, int $brightnessPercent): void
+    {
+        $ip = trim($this->ReadPropertyString($propertyName));
+        if (empty($ip)) {
+            return;
+        }
+
+        $bri = (int)round(($brightnessPercent / 100) * 255);
+        $url = "http://{$ip}/json/state";
+        $payload = ['bri' => $bri];
+
+        $result = $this->HttpRequest($url, 'POST', ['Content-Type: application/json'], $payload, 3);
+        if ($result === null) {
+            $this->SLogWarning('WLED nicht erreichbar fuer Helligkeit: ' . $ip);
+        } else {
+            $this->SLogDebug("WLED Helligkeit auf {$brightnessPercent}% ({$bri}) gesetzt: {$ip}");
+        }
     }
 
     // =========================================================================
