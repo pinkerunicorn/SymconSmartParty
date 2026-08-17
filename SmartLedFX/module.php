@@ -42,6 +42,9 @@ class SmartLedFX extends IPSModuleStrict
         $this->RegisterPropertyString('WledIpWohnzimmer', '');
         $this->RegisterPropertyString('WledIpGarten', '');
 
+        // Lyngdorf Verknüpfung
+        $this->RegisterPropertyInteger('LyngdorfInstance', 0);
+
         // Health-Check Intervall
         $this->RegisterPropertyInteger('PollInterval', 30);
 
@@ -213,6 +216,18 @@ class SmartLedFX extends IPSModuleStrict
         // 4. ShowMode ausgrauen
         IPS_SetDisabled($this->GetIDForIdent('ShowMode'), true);
 
+        // 5. Lyngdorf Zone B einschalten (falls konfiguriert)
+        $lyngdorfId = $this->ReadPropertyInteger('LyngdorfInstance');
+        if ($lyngdorfId > 0 && IPS_InstanceExists($lyngdorfId)) {
+            $powerVarId = @IPS_GetObjectIDByIdent('ZoneBPower', $lyngdorfId);
+            if ($powerVarId !== false) {
+                RequestAction($powerVarId, true);
+                $this->SLogInfo('Lyngdorf Zone B eingeschaltet.');
+            } else {
+                $this->SLogWarning('Lyngdorf ZoneBPower Variable nicht gefunden.');
+            }
+        }
+
         $modeNames = ['Nur Wohnzimmer', 'Nur Garten', 'Beides', 'Frequency Split'];
         $this->SLogInfo('Audio-Show gestartet: ' . ($modeNames[$mode] ?? 'Unbekannt'));
     }
@@ -243,6 +258,16 @@ class SmartLedFX extends IPSModuleStrict
 
         // 5. ShowMode wieder freigeben
         IPS_SetDisabled($this->GetIDForIdent('ShowMode'), false);
+
+        // 6. Lyngdorf Zone B ausschalten (falls konfiguriert)
+        $lyngdorfId = $this->ReadPropertyInteger('LyngdorfInstance');
+        if ($lyngdorfId > 0 && IPS_InstanceExists($lyngdorfId)) {
+            $powerVarId = @IPS_GetObjectIDByIdent('ZoneBPower', $lyngdorfId);
+            if ($powerVarId !== false) {
+                RequestAction($powerVarId, false);
+                $this->SLogInfo('Lyngdorf Zone B ausgeschaltet.');
+            }
+        }
 
         $this->SLogInfo('Audio-Show beendet');
     }
@@ -515,6 +540,24 @@ class SmartLedFX extends IPSModuleStrict
                             'name'    => 'WledIpGarten',
                             'caption' => 'WLED IP Garten',
                             'width'   => '200px'
+                        ]
+                    ]
+                ],
+
+                // --- Audio / Receiver ---
+                [
+                    'type'    => 'ExpansionPanel',
+                    'caption' => 'Audio / Receiver',
+                    'expanded' => true,
+                    'items'   => [
+                        [
+                            'type'    => 'Label',
+                            'caption' => 'Optional: Wähle die Lyngdorf MP-60 Instanz aus. Die Zone B wird dann automatisch beim Starten der Show ein- und beim Beenden ausgeschaltet.'
+                        ],
+                        [
+                            'type'    => 'SelectInstance',
+                            'name'    => 'LyngdorfInstance',
+                            'caption' => 'Lyngdorf Instanz'
                         ]
                     ]
                 ],
