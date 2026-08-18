@@ -60,7 +60,7 @@ class SmartPartyGateway extends IPSModuleStrict
         ], 0);
 
         $this->RegisterPropertyInteger('RegistryID', 0);
-        $this->DR_Register();
+        $this->DR_Register('DevicesSwitch');
     }
 
     public function Destroy(): void

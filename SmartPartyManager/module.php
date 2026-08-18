@@ -103,7 +103,7 @@ class SmartPartyManager extends IPSModuleStrict
         $this->RegisterTimer('RSVPCheckTimer', 0, 'SPM_CheckRSVP($_IPS[\'TARGET\']);');
 
         $this->RegisterPropertyInteger('RegistryID', 0);
-        $this->DR_Register();
+        $this->DR_Register('DevicesSwitch');
     }
 
     public function Destroy(): void
