@@ -269,8 +269,6 @@ class SmartLedFX extends IPSModuleStrict
         $sceneId = $this->ReadPropertyString($sceneProperty);
         if (empty($sceneId)) {
             $this->SLogError('Keine LedFx-Szene fuer Modus ' . $mode . ' konfiguriert');
-            // Override wieder zuruecksetzen
-            $this->ResetAllOverrides();
             return;
         }
 
