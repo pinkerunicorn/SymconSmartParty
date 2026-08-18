@@ -13,17 +13,28 @@ if (!trait_exists('DeviceRegistration_Trait')) {
         /**
          * Registers the module with the Device Registry.
          *
-         * @param string $deviceType The type of the device.
-         * @param array $variables The variables to register.
+         * Automatically detects the DeviceAvailable variable if DeviceAvailability_Trait is used.
+         * Additional variables can optionally be passed for richer metadata.
+         *
+         * @param string $deviceType The type of the device (e.g. 'DevicesSwitch', 'DevicesContactSensor').
+         * @param array $variables Optional additional variables to register.
          * @return void
          */
-        private function DR_Register(string $deviceType, array $variables): void
+        private function DR_Register(string $deviceType, array $variables = []): void
         {
             $registryIDs = @IPS_GetInstanceListByModuleID('{F3B4A7D9-C59E-401A-B826-17D3B5C2849E}');
             if ($registryIDs === false || count($registryIDs) === 0) {
                 return;
             }
             $registryID = $registryIDs[0];
+
+            // Auto-detect DeviceAvailable if not explicitly provided
+            if (!isset($variables['Reachable_VarID'])) {
+                $availableVarID = @$this->GetIDForIdent('DeviceAvailable');
+                if ($availableVarID !== false && $availableVarID > 0) {
+                    $variables['Reachable_VarID'] = $availableVarID;
+                }
+            }
 
             $location = @IPS_GetLocation($this->InstanceID);
             if ($location === false) {
