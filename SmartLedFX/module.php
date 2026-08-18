@@ -143,11 +143,57 @@ class SmartLedFX extends IPSModuleStrict
 
         // Initiale Prüfung
         $this->HealthCheck();
+
+        // ---------------------------------------------------------
+        // Event-Registrierung: Lyngdorf Zone B Sync
+        // ---------------------------------------------------------
+        
+        // Zuerst alle alten Registrierungen löschen
+        foreach ($this->GetMessageList() as $senderId => $messages) {
+            foreach ($messages as $message) {
+                $this->UnregisterMessage($senderId, $message);
+            }
+        }
+
+        // Neue Registrierung (falls konfiguriert)
+        $lyngdorfId = $this->ReadPropertyInteger('LyngdorfInstance');
+        if ($lyngdorfId > 0 && IPS_InstanceExists($lyngdorfId)) {
+            $powerVarId = @IPS_GetObjectIDByIdent('ZoneBPower', $lyngdorfId);
+            if ($powerVarId !== false) {
+                $this->RegisterMessage($powerVarId, VM_UPDATE);
+                $this->SLogDebug("Registriere Event auf Lyngdorf Zone B (VarID: {$powerVarId})");
+            }
+        }
     }
 
     // =========================================================================
-    // Actions
+    // Actions & Events
     // =========================================================================
+
+    public function MessageSink(int $TimeStamp, int $SenderID, int $Message, array $Data): void
+    {
+        parent::MessageSink($TimeStamp, $SenderID, $Message, $Data);
+
+        if ($Message === VM_UPDATE) {
+            $lyngdorfId = $this->ReadPropertyInteger('LyngdorfInstance');
+            if ($lyngdorfId > 0) {
+                $powerVarId = @IPS_GetObjectIDByIdent('ZoneBPower', $lyngdorfId);
+                if ($SenderID === $powerVarId) {
+                    $zoneBState = $Data[0]; // Neuer Wert (true/false)
+                    $showActive = $this->GetValue('ShowActive');
+
+                    if ($zoneBState && !$showActive) {
+                        $this->SLogInfo('Lyngdorf Zone B extern eingeschaltet -> Starte LedFx Show');
+                        // Wir rufen StartShow direkt auf, da wir den Status übernehmen wollen
+                        $this->StartShow();
+                    } elseif (!$zoneBState && $showActive) {
+                        $this->SLogInfo('Lyngdorf Zone B extern ausgeschaltet -> Beende LedFx Show');
+                        $this->StopShow();
+                    }
+                }
+            }
+        }
+    }
 
     public function RequestAction(string $Ident, mixed $Value): void
     {
