@@ -5,12 +5,16 @@ declare(strict_types=1);
 require_once __DIR__ . '/../libs/Trait_SmartLog.php';
 require_once __DIR__ . '/../libs/Trait_SmartHttp.php';
 require_once __DIR__ . '/../libs/Trait_DeviceAvailability.php';
+require_once __DIR__ . '/../libs/Trait_RegistryAware.php';
+require_once __DIR__ . '/../libs/Trait_DeviceRegistration.php';
 
 class SmartPartyGateway extends IPSModuleStrict
 {
     use SmartLog_Trait;
     use SmartHttp_Trait;
     use DeviceAvailability_Trait;
+    use RegistryAware_Trait;
+    use DeviceRegistration_Trait;
 
     // Google OAuth2 / API Endpoints
     private const GOOGLE_AUTH_URL   = 'https://accounts.google.com/o/oauth2/v2/auth';
@@ -54,6 +58,15 @@ class SmartPartyGateway extends IPSModuleStrict
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON'         => 'network-wired',
         ], 0);
+
+        $this->RegisterPropertyInteger('RegistryID', 0);
+        $this->DR_Register();
+    }
+
+    public function Destroy(): void
+    {
+        $this->DR_Unregister();
+        parent::Destroy();
     }
 
     public function ApplyChanges(): void
