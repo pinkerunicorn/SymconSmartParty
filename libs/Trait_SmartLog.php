@@ -29,7 +29,7 @@ trait SmartLog_Trait
     private function SLog(string $level, string $message, string $details = '', string $trigger = ''): void
     {
         // Modulnamen aus dem Klassennamen ableiten
-        $source = static::class;
+        $source = IPS_GetName($this->InstanceID);
 
         $slogInstances = @IPS_GetInstanceListByModuleID('{E4375147-F095-4B6F-9E06-F3A65EB8B635}');
         if (is_array($slogInstances) && count($slogInstances) > 0) {
