@@ -22,11 +22,20 @@ if (!trait_exists('DeviceRegistration_Trait')) {
          */
         private function DR_Register(string $deviceType, array $variables = []): void
         {
-            $registryIDs = @IPS_GetInstanceListByModuleID('{F3B4A7D9-C59E-401A-B826-17D3B5C2849E}');
-            if ($registryIDs === false || count($registryIDs) === 0) {
-                return;
+            // Multi-House-Discovery: Nutze RegistryAware_Trait wenn verfügbar
+            $registryID = 0;
+            if (method_exists($this, 'DR_GetRegistryID')) {
+                $registryID = $this->DR_GetRegistryID();
             }
-            $registryID = $registryIDs[0];
+            
+            // Fallback: GUID-Lookup
+            if ($registryID === 0) {
+                $registryIDs = @IPS_GetInstanceListByModuleID('{F3B4A7D9-C59E-401A-B826-17D3B5C2849E}');
+                if ($registryIDs === false || count($registryIDs) === 0) {
+                    return;
+                }
+                $registryID = $registryIDs[0];
+            }
 
             // Auto-detect DeviceAvailable if not explicitly provided
             if (!isset($variables['Reachable_VarID'])) {
@@ -86,11 +95,20 @@ if (!trait_exists('DeviceRegistration_Trait')) {
          */
         private function DR_Unregister(): void
         {
-            $registryIDs = @IPS_GetInstanceListByModuleID('{F3B4A7D9-C59E-401A-B826-17D3B5C2849E}');
-            if ($registryIDs === false || count($registryIDs) === 0) {
-                return;
+            // Multi-House-Discovery: Nutze RegistryAware_Trait wenn verfügbar
+            $registryID = 0;
+            if (method_exists($this, 'DR_GetRegistryID')) {
+                $registryID = $this->DR_GetRegistryID();
             }
-            $registryID = $registryIDs[0];
+            
+            // Fallback: GUID-Lookup
+            if ($registryID === 0) {
+                $registryIDs = @IPS_GetInstanceListByModuleID('{F3B4A7D9-C59E-401A-B826-17D3B5C2849E}');
+                if ($registryIDs === false || count($registryIDs) === 0) {
+                    return;
+                }
+                $registryID = $registryIDs[0];
+            }
 
             if (function_exists('SDR_AutoUnregister')) {
                 @SDR_AutoUnregister($registryID, $this->InstanceID);

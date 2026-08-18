@@ -38,13 +38,20 @@ if (!trait_exists('CentralStateAware_Trait')) {
                 }
             }
 
-            $instances = IPS_GetInstanceListByModuleID('{460D7C60-0766-4534-BFD8-5920737B1845}');
-            if (count($instances) === 0) {
-                // SmartHomeControl not found
-                return;
+            // Multi-House-Discovery: Nutze RegistryAware_Trait wenn verfügbar
+            $shcID = 0;
+            if (method_exists($this, 'DR_GetControllerID')) {
+                $shcID = $this->DR_GetControllerID();
             }
-
-            $shcID = $instances[0];
+            
+            // Fallback: GUID-Lookup (für globale Singletons wie SmartNotifier)
+            if ($shcID === 0) {
+                $instances = @IPS_GetInstanceListByModuleID('{460D7C60-0766-4534-BFD8-5920737B1845}');
+                if (!is_array($instances) || count($instances) === 0) {
+                    return;
+                }
+                $shcID = $instances[0];
+            }
             $varMap = [];
 
             foreach ($stateNames as $ident) {
