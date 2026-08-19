@@ -58,6 +58,7 @@ class SmartLedFX extends IPSModuleStrict
 
         // Show-Modus (Dropdown)
         $this->RegisterVariableInteger('ShowMode', 'Show-Modus', [
+            'ICON' => 'wand-magic-sparkles',
             'PRESENTATION' => VARIABLE_PRESENTATION_ENUMERATION,
             'OPTIONS' => json_encode([
                 ['Value' => self::MODE_WOHNZIMMER, 'Caption' => 'Nur Wohnzimmer', 'IconActive' => true, 'IconValue' => 'Sofa',      'Color' => 0x3399FF],

@@ -95,6 +95,7 @@ class SmartPartyManager extends IPSModuleStrict
         ], 7);
 
         $this->RegisterVariableString('GuestListHTML', 'Gaesteliste', [
+            'ICON' => 'users',
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'type' => 'HTML'
         ], 8);
