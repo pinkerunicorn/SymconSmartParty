@@ -6,16 +6,12 @@ require_once __DIR__ . '/../libs/Trait_SmartLog.php';
 require_once __DIR__ . '/../libs/Trait_SmartHttp.php';
 require_once __DIR__ . '/../libs/Trait_DeviceAvailability.php';
 require_once __DIR__ . '/../libs/Trait_RegistryAware.php';
-require_once __DIR__ . '/../libs/Trait_DeviceRegistration.php';
-
 class SmartPartyManager extends IPSModuleStrict
 {
     use SmartLog_Trait;
     use SmartHttp_Trait;
     use DeviceAvailability_Trait;
     use RegistryAware_Trait;
-    use DeviceRegistration_Trait;
-
     // =========================================================================
     // Lifecycle
     // =========================================================================
@@ -104,12 +100,10 @@ class SmartPartyManager extends IPSModuleStrict
         $this->RegisterTimer('RSVPCheckTimer', 0, 'SPM_CheckRSVP($_IPS[\'TARGET\']);');
 
         $this->RegisterPropertyInteger('RegistryID', 0);
-        $this->DR_Register('DevicesSwitch');
-    }
+        }
 
     public function Destroy(): void
     {
-        $this->DR_Unregister();
         parent::Destroy();
     }
 
